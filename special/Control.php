@@ -2,6 +2,7 @@
 namespace FlowThread;
 
 use MediaWiki\CommentStore\CommentStore;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\ErrorPageError;
 use MediaWiki\Exception\PermissionsError;
 use MediaWiki\Html\Html;
@@ -37,7 +38,7 @@ class SpecialControl extends FormSpecialPage {
 
 		$this->getSkin()->setRelevantTitle( $this->title );
 		$out = $this->getOutput();
-		$out->setPageTitle( $this->msg( 'flowthreadcontrol', $this->title->getPrefixedText() ) );
+		$out->setPageTitleMsg( $this->msg( 'flowthreadcontrol', $this->title->getPrefixedText() ) );
 	}
 
 	protected function setParameter( $par ) {
@@ -123,7 +124,7 @@ class SpecialControl extends FormSpecialPage {
 		}
 	}
 
-	public function onSubmit(array $data, HTMLForm $form = null ) {
+	public function onSubmit(array $data) {
 		$hiddenStatus = intval($data['CurrentStatus']);
 		if ($this->currentStatus !== $hiddenStatus) {
 			$this->currentStatus = $hiddenStatus;
@@ -142,7 +143,7 @@ class SpecialControl extends FormSpecialPage {
 		}
 		self::setControlStatus($this->title, $target);
 
-		$context = $form->getContext();
+		$context = RequestContext::getMain();
 		$performer = $context->getUser();
 		$reason = $data['Reason'];
 		if (isset($reason[0])){
