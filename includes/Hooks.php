@@ -1,8 +1,8 @@
 <?php
 namespace FlowThread;
 
-use Exception;
 use MediaWiki\Content\Content;
+use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Logging\LogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
@@ -64,25 +64,17 @@ class Hooks {
 		return true;
 	}
 
-	public static function onLoadExtensionSchemaUpdates($updater) {
+	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater) {
 		$dir = __DIR__ . '/../sql';
 
 		$dbType = $updater->getDB()->getType();
-		// For non-MySQL/MariaDB/SQLite DBMSes, use the appropriately named file
-		if (!in_array($dbType, array('mysql', 'sqlite'))) {
-			throw new Exception('Database type not currently supported');
-		} else {
-			$filename = 'mysql.sql';
-		}
 
-		$updater->addExtensionTable('FlowThread', "{$dir}/{$filename}");
-		$updater->addExtensionTable('FlowThreadAttitude', "{$dir}/{$filename}");
-		$updater->addExtensionTable('FlowThreadControl', "{$dir}/control.sql");
+		$updater->addExtensionTable('FlowThread', "{$dir}/{$dbType}/tables-generated.sql");
 
 		return true;
 	}
 
-	public static function onArticleDeleteComplete(&$article, User &$user, $reason, $id, Content $content = null, LogEntry $logEntry) {
+	public static function onArticleDeleteComplete(&$article, User &$user, $reason, $id, Content $content, LogEntry $logEntry) {
 		$page = new Query();
 		$page->pageid = $id;
 		$page->limit = -1;

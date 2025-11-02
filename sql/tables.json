@@ -1,0 +1,155 @@
+[
+	{
+		"name": "FlowThread",
+		"comment": "Main table for FlowThread comments",
+		"columns": [
+			{
+				"name": "flowthread_id",
+				"type": "binary",
+				"options": {
+					"length": 11,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_pageid",
+				"type": "integer",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_userid",
+				"type": "integer",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_username",
+				"type": "string",
+				"options": {
+					"length": 255,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_text",
+				"type": "text",
+				"options": {
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_parentid",
+				"type": "binary",
+				"options": {
+					"length": 11,
+					"notnull": false
+				}
+			},
+			{
+				"name": "flowthread_status",
+				"type": "mwtinyint",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_like",
+				"type": "integer",
+				"options": {
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_report",
+				"type": "integer",
+				"options": {
+					"notnull": true
+				}
+			}
+		],
+		"indexes": [
+			{
+				"name": "FlowThreadSearchByPage",
+				"columns": [
+					"flowthread_pageid"
+				],
+				"unique": false
+			}
+		],
+		"pk": [
+			"flowthread_id"
+		]
+	},
+	{
+		"name": "FlowThreadAttitude",
+		"comment": "User reaction to a FlowThread comment",
+		"columns": [
+			{
+				"name": "flowthread_att_id",
+				"type": "binary",
+				"options": {
+					"length": 11,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_att_type",
+				"type": "mwtinyint",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_att_userid",
+				"type": "integer",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			}
+		],
+		"indexes": [
+			{
+				"name": "FlowThreadSearchAttitude",
+				"columns": [
+					"flowthread_att_id",
+					"flowthread_att_userid"
+				],
+				"unique": true
+			}
+		]
+	},
+	{
+		"name": "FlowThreadControl",
+		"comment": "Restriction status for FlowThread comments on a certain page, such as disabling them",
+		"columns": [
+			{
+				"name": "flowthread_ctrl_pageid",
+				"type": "integer",
+				"options": {
+					"unsigned": true,
+					"notnull": true
+				}
+			},
+			{
+				"name": "flowthread_ctrl_status",
+				"type": "integer",
+				"options": {
+					"notnull": true
+				}
+			}
+		],
+		"pk": [
+			"flowthread_ctrl_pageid"
+		],
+		"indexes": [
+		]
+	}
+]
