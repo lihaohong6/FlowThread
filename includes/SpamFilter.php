@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\MediaWikiServices;
@@ -10,12 +11,12 @@ class SpamFilter {
 	/**
 	 * Validate if a regular expression is valid
 	 */
-	private static function validateRegex($regex) {
+	private static function validateRegex( $regex ) {
 		AtEase::suppressWarnings();
-		$ok = preg_match($regex, '');
+		$ok = preg_match( $regex, '' );
 		AtEase::restoreWarnings();
 
-		if ($ok === false) {
+		if ( $ok === false ) {
 			return false;
 		}
 
@@ -25,31 +26,31 @@ class SpamFilter {
 	/**
 	 * Parse a line in spam blacklist
 	 */
-	private static function parseLine($line) {
-		$line = trim(preg_replace('/#.*$/', '', $line)); // Remove comments and trim space
-		if (!$line) {
+	private static function parseLine( $line ) {
+		$line = trim( preg_replace( '/#.*$/', '', $line ) ); // Remove comments and trim space
+		if ( !$line ) {
 			// The line does not contain a regular expression
 			return null;
 		}
 
 		// Extract regex and options from the result
 		$result = null;
-		preg_match('/^(.*?)(?:\s*<([^<>]*)>)?$/', $line, $result);
-		@list($full, $regex, $opts) = $result;
+		preg_match( '/^(.*?)(?:\s*<([^<>]*)>)?$/', $line, $result );
+		@list( $full, $regex, $opts ) = $result;
 
-		if (!$line) {
+		if ( !$line ) {
 			// Cannot contain only options
 			return null;
 		}
 
-		if (!$opts) {
+		if ( !$opts ) {
 			// Default value
 			$opts = '';
 		}
 
 		// Must be a valid regex
 		// This can also prevent problems when we joining the regex using |
-		if (!self::validateRegex('/' . $regex . '/')) {
+		if ( !self::validateRegex( '/' . $regex . '/' ) ) {
 			// Abort for invalid regex
 			return null;
 		}
@@ -63,51 +64,54 @@ class SpamFilter {
 	/**
 	 * Parse option part in blacklist line (enclosed in <>)
 	 */
-	private static function parseOptions($opts) {
+	private static function parseOptions( $opts ) {
 		$options = array();
-		$segments = explode('|', $opts);
-		foreach ($segments as $opt) {
+		$segments = explode( '|', $opts );
+		foreach ( $segments as $opt ) {
 			// Extract key=value pair
-			$exploded = explode('=', $opt, 2);
+			$exploded = explode( '=', $opt, 2 );
 			$key = $exploded[0];
-			$value = isset($exploded[1]) ? $exploded[1] : '';
+			$value = isset( $exploded[1] ) ? $exploded[1] : '';
 
-			switch ($key) {
-			case 'replace':
-				// Replace the text instead of marking as spam
-				$options['replace'] = $value;
-				break;
-			default:
-				$services = MediaWikiServices::getInstance();
-				if (in_array($key, $services->getPermissionManager()->getAllPermissions())) {
-					// If the name is a user right
-					if (isset($options['right'])) {
-						$options['right'][] = $key;
+			switch ( $key ) {
+				case 'replace':
+					// Replace the text instead of marking as spam
+					$options['replace'] = $value;
+					break;
+				default:
+					$services = MediaWikiServices::getInstance();
+					if ( in_array( $key, $services->getPermissionManager()->getAllPermissions() ) ) {
+						// If the name is a user right
+						if ( isset( $options['right'] ) ) {
+							$options['right'][] = $key;
+						} else {
+							$options['right'] = array( $key );
+						}
 					} else {
-						$options['right'] = array($key);
+						if ( in_array( $key, $services->getUserGroupManager()->listAllGroups() ) ) {
+							// If the name is a user group
+							if ( isset( $options['group'] ) ) {
+								$options['group'][] = $key;
+							} else {
+								$options['group'] = array( $key );
+							}
+						}
 					}
-				} else if (in_array($key, $services->getUserGroupManager()->listAllGroups())) {
-					// If the name is a user group
-					if (isset($options['group'])) {
-						$options['group'][] = $key;
-					} else {
-						$options['group'] = array($key);
-					}
-				}
 			}
 		}
+
 		return $options;
 	}
 
 	/**
 	 * Parse whole spam blacklist
 	 */
-	private static function parseLines($lines) {
+	private static function parseLines( $lines ) {
 		$batches = array();
-		foreach ($lines as $line) {
-			$parsed = self::parseLine($line);
-			if ($parsed) {
-				if (isset($batches[$parsed['opt']])) {
+		foreach ( $lines as $line ) {
+			$parsed = self::parseLine( $line );
+			if ( $parsed ) {
+				if ( isset( $batches[$parsed['opt']] ) ) {
 					// Concatenate regexes to speed up
 					$batches[$parsed['opt']] .= '|' . $parsed['regex'];
 				} else {
@@ -116,64 +120,67 @@ class SpamFilter {
 			}
 		}
 		$ret = array();
-		foreach ($batches as $opt => $regex) {
+		foreach ( $batches as $opt => $regex ) {
 			$ret[] = array(
 				'/' . $regex . '/iu',
-				self::parseOptions($opt),
+				self::parseOptions( $opt ),
 			);
 		}
+
 		return $ret;
 	}
 
 	private static function getBlackList() {
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+
 		return $cache->getWithSetCallback(
-			ObjectCache::getLocalClusterInstance()->makeKey('flowthread', 'spamblacklist'),
+			ObjectCache::getLocalClusterInstance()->makeKey( 'flowthread', 'spamblacklist' ),
 			60,
 			function () {
-				$source = wfMessage('flowthread-blacklist')->inContentLanguage();
-				if ($source->isDisabled()) {
-					return array();
-				}
-				$lines = explode("\n", $source->text());
-				return self::parseLines($lines);
+			$source = wfMessage( 'flowthread-blacklist' )->inContentLanguage();
+			if ( $source->isDisabled() ) {
+				return array();
 			}
+			$lines = explode( "\n", $source->text() );
+
+			return self::parseLines( $lines );
+		}
 		);
 	}
 
-	public static function validate($text, $poster, $wikitext) {
+	public static function validate( $text, $poster, $wikitext ) {
 		$blacklist = self::getBlackList();
 		$spammed = false;
 		$ret = array(
 			'good' => true,
 		);
 
-		foreach ($blacklist as $line) {
-			list($regex, $opt) = $line;
-			if (preg_match($regex, $text)) {
-				if (isset($opt['group'])) {
+		foreach ( $blacklist as $line ) {
+			list( $regex, $opt ) = $line;
+			if ( preg_match( $regex, $text ) ) {
+				if ( isset( $opt['group'] ) ) {
 					// When user is in the allowed group list, we skip this rule
-					if (count(array_intersect($opt['group'], $poster->getGroups()))) {
+					if ( count( array_intersect( $opt['group'], $poster->getGroups() ) ) ) {
 						continue;
 					}
 				}
 
-				if (isset($opt['right'])) {
+				if ( isset( $opt['right'] ) ) {
 					// Right-based control
-					foreach ($opt['right'] as $item) {
-						if ($poster->isAllowed($item)) {
+					foreach ( $opt['right'] as $item ) {
+						if ( $poster->isAllowed( $item ) ) {
 							continue 2;
 						}
 					}
 				}
 
-				if (isset($opt['replace'])) {
+				if ( isset( $opt['replace'] ) ) {
 					$replaceText = $opt['replace'];
-					if ($wikitext) {
+					if ( $wikitext ) {
 						$replaceText = '<nowiki>' . $replaceText . '</nowiki>';
 					}
 					// Do text replace instead of moving into spam
-					$text = preg_replace($regex, $replaceText, $text);
+					$text = preg_replace( $regex, $replaceText, $text );
 					continue;
 				}
 
@@ -183,10 +190,15 @@ class SpamFilter {
 		}
 
 		$ret['text'] = $text;
+
 		return $ret;
 	}
 
-	public static function sanitize($html) {
-		return preg_replace('/position(?:\/\*[^*]*\*+([^\/*][^*]*\*+)*\/|\s)*:(?:\/\*[^*]*\*+([^\/*][^*]*\*+)*\/|\s)*fixed/i', '', $html);
+	public static function sanitize( $html ) {
+		return preg_replace(
+			'/position(?:\/\*[^*]*\*+([^\/*][^*]*\*+)*\/|\s)*:(?:\/\*[^*]*\*+([^\/*][^*]*\*+)*\/|\s)*fixed/i',
+			'',
+			$html
+		);
 	}
 }

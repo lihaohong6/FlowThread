@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\MediaWikiServices;
@@ -9,6 +10,7 @@ class UID {
 
 	/**
 	 * Hex UID String
+	 *
 	 * @var string
 	 */
 	private $binValue = null;
@@ -24,45 +26,51 @@ class UID {
 
 	}
 
-	public static function fromHex($value) {
+	public static function fromHex( $value ) {
 		$ret = new static;
 		$ret->hexValue = $value;
+
 		return $ret;
 	}
 
-	public static function fromBin($value) {
+	public static function fromBin( $value ) {
 		$ret = new static;
 		$ret->binValue = $value;
+
 		return $ret;
 	}
 
 	public static function generate() {
-		$hex = MediaWikiServices::getInstance()->getGlobalIdGenerator()->newTimestampedUID88(16);
-		$hex = str_pad($hex, static::HEX_LEN, '0', STR_PAD_LEFT);
-		return self::fromHex($hex);
+		$hex = MediaWikiServices::getInstance()->getGlobalIdGenerator()->newTimestampedUID88( 16 );
+		$hex = str_pad( $hex, static::HEX_LEN, '0', STR_PAD_LEFT );
+
+		return self::fromHex( $hex );
 	}
 
 	public function getHex() {
-		if(!$this->hexValue) {
-			$this->hexValue = str_pad(bin2hex($this->binValue), static::HEX_LEN, '0', STR_PAD_LEFT);
+		if ( !$this->hexValue ) {
+			$this->hexValue = str_pad( bin2hex( $this->binValue ), static::HEX_LEN, '0', STR_PAD_LEFT );
 		}
+
 		return $this->hexValue;
 	}
 
 	public function getBin() {
-		if(!$this->binValue) {
-			$this->binValue = pack('H*', $this->hexValue);
+		if ( !$this->binValue ) {
+			$this->binValue = pack( 'H*', $this->hexValue );
 		}
+
 		return $this->binValue;
 	}
 
 	public function getTimestamp() {
-		if(!$this->timestamp) {
+		if ( !$this->timestamp ) {
 			// Originally we have
 			//   $this->timestamp = intval((hexdec(substr($this->getHex(), 0, 12)) >> 2) / 1000);
 			// but this does not work in 32-bit PHP. So we changed to following
-			$this->timestamp = floor(hexdec(substr($this->getHex(), 0, 12)) / 4000);
+			$this->timestamp = floor( hexdec( substr( $this->getHex(), 0, 12 ) ) / 4000 );
 		}
+
 		return $this->timestamp;
 	}
 }

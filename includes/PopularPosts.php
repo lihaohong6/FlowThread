@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\MediaWikiServices;
@@ -8,49 +9,50 @@ class PopularPosts {
 
 	const CACHE_TTL = 3600;
 
-	public static function getFromPageId($pageid) {
-		return self::fetchFromCache($pageid);
+	public static function getFromPageId( $pageid ) {
+		return self::fetchFromCache( $pageid );
 	}
 
-	public static function invalidateCache($post) {
+	public static function invalidateCache( $post ) {
 		$pageid = $post->pageid;
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
-		$key = ObjectCache::getLocalClusterInstance()->makeKey('flowthread', 'popular', $pageid);
-		$cachedValue = $cache->get($key);
-		if ($cachedValue === false) {
+		$key = ObjectCache::getLocalClusterInstance()->makeKey( 'flowthread', 'popular', $pageid );
+		$cachedValue = $cache->get( $key );
+		if ( $cachedValue === false ) {
 			return;
 		}
-		if (isset($cachedValue[$post->id->getBin()])) {
-			$cache->delete($key);
+		if ( isset( $cachedValue[$post->id->getBin()] ) ) {
+			$cache->delete( $key );
 		}
 	}
 
-	private static function fetchFromCache($pageid) {
+	private static function fetchFromCache( $pageid ) {
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
-		$key = ObjectCache::getLocalClusterInstance()->makeKey('flowthread', 'popular', $pageid);
-		$cachedValue = $cache->get($key);
-		if ($cachedValue === false) {
-			$posts = self::fetchFromDB($pageid);
+		$key = ObjectCache::getLocalClusterInstance()->makeKey( 'flowthread', 'popular', $pageid );
+		$cachedValue = $cache->get( $key );
+		if ( $cachedValue === false ) {
+			$posts = self::fetchFromDB( $pageid );
 			$valueToCache = array();
-			foreach ($posts as $post) {
+			foreach ( $posts as $post ) {
 				$valueToCache[$post->id->getBin()] = $post->getFavorCount();
 			}
-			$cache->set($key, $valueToCache, self::CACHE_TTL);
+			$cache->set( $key, $valueToCache, self::CACHE_TTL );
 		} else {
 			$posts = array();
-			foreach ($cachedValue as $id => $count) {
-				$posts[] = Post::newFromId(UID::fromBin($id));
+			foreach ( $cachedValue as $id => $count ) {
+				$posts[] = Post::newFromId( UID::fromBin( $id ) );
 			}
 		}
+
 		return $posts;
 	}
 
-	private static function fetchFromDB($pageid) {
+	private static function fetchFromDB( $pageid ) {
 		global $wgFlowThreadConfig;
-		if (!$wgFlowThreadConfig['PopularPostCount']) {
+		if ( !$wgFlowThreadConfig['PopularPostCount'] ) {
 			return array();
 		}
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 		$cond = array(
 			'flowthread_pageid' => $pageid,
 			'flowthread_status' => Post::STATUS_NORMAL,
@@ -60,12 +62,13 @@ class PopularPosts {
 			'ORDER BY' => 'flowthread_like DESC, flowthread_id DESC',
 			'LIMIT' => $wgFlowThreadConfig['PopularPostCount'],
 		);
-		$res = $dbr->select('FlowThread', Post::getRequiredColumns(), $cond, __METHOD__, $options);
+		$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), $cond, __METHOD__, $options );
 		$comments = array();
-		foreach ($res as $row) {
-			$post = Post::newFromDatabaseRow($row);
+		foreach ( $res as $row ) {
+			$post = Post::newFromDatabaseRow( $row );
 			$comments[] = $post;
 		}
+
 		return $comments;
 	}
 }

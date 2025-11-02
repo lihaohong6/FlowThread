@@ -12,13 +12,13 @@ use MediaWiki\Title\Title;
 class SpecialExport extends SpecialPage {
 
 	public function __construct() {
-		parent::__construct('FlowThreadExport', 'commentadmin');
+		parent::__construct( 'FlowThreadExport', 'commentadmin' );
 	}
 
-	public function execute($par) {
+	public function execute( $par ) {
 		$user = $this->getUser();
-		if (!$this->userCanExecute($user)) {
-			throw new PermissionsError('commentadmin');
+		if ( !$this->userCanExecute( $user ) ) {
+			throw new PermissionsError( 'commentadmin' );
 		}
 
 		$request = $this->getRequest();
@@ -28,25 +28,25 @@ class SpecialExport extends SpecialPage {
 
 		$doExport = false;
 
-		if ($request->wasPosted()) {
+		if ( $request->wasPosted() ) {
 			$doExport = true;
 		}
 
-		if ($doExport) {
+		if ( $doExport ) {
 			// No default output, we are printing raw data now
 			$this->getOutput()->disable();
 
 			// No buffering, otherwise output will consume too much memory
 			wfResetOutputBuffers();
-			$request->response()->header("Content-type: application/json; charset=utf-8");
+			$request->response()->header( "Content-type: application/json; charset=utf-8" );
 
 			// Got headers ready so browser triggers a download
-			$filename = urlencode($config->get('Sitename') . '-' . wfTimestampNow() . '-flowthread.json');
-			$request->response()->header("Content-disposition: attachment;filename={$filename}");
-			$request->response()->header("Cache-Control: no-cache");
+			$filename = urlencode( $config->get( 'Sitename' ) . '-' . wfTimestampNow() . '-flowthread.json' );
+			$request->response()->header( "Content-disposition: attachment;filename={$filename}" );
+			$request->response()->header( "Cache-Control: no-cache" );
 
 			// Got all data. NOTE that ORDER BY is essential since we are grouping comments
-			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
 			$pageid = 0;
 			$counter = 0;
@@ -56,31 +56,31 @@ class SpecialExport extends SpecialPage {
 			echo "[";
 
 			// We do a limited query, as otherwise buffering will consume too much memory and time
-			while ($hasNext) {
-				$res = $dbr->select('FlowThread', Post::getRequiredColumns(), array(), __METHOD__, array(
+			while ( $hasNext ) {
+				$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), array(), __METHOD__, array(
 					'ORDER BY' => 'flowthread_pageid ASC, flowthread_id ASC',
 					'OFFSET' => $offset,
 					'LIMIT' => 1000,
-				));
+				) );
 				$offset += 1000;
 
 				$hasNext = false; // Nasty but neccessary stuff to make it fast
-				foreach ($res as $row) {
+				foreach ( $res as $row ) {
 					$hasNext = true;
-					$post = Post::newFromDatabaseRow($row);
+					$post = Post::newFromDatabaseRow( $row );
 
-					if ($post->pageid != $pageid) {
-						if ($pageid != 0) {
+					if ( $post->pageid != $pageid ) {
+						if ( $pageid != 0 ) {
 							echo "\n]},";
 						}
 						$pageid = $post->pageid;
-						$title = Title::newFromId($pageid);
-						$title = FormatJSON::encode($title ? $title->getPrefixedText() : '');
+						$title = Title::newFromId( $pageid );
+						$title = FormatJSON::encode( $title ? $title->getPrefixedText() : '' );
 						echo "{\"title\":{$title}, \"posts\":[\n";
 						$first = true;
 					}
 
-					if ($first) {
+					if ( $first ) {
 						$first = false;
 					} else {
 						echo ",\n";
@@ -94,7 +94,7 @@ class SpecialExport extends SpecialPage {
 						'parentid' => $post->parentid ? $post->parentid->getHex() : null,
 						'status' => $post->status,
 					);
-					echo '  ' . FormatJSON::encode($postJSON);
+					echo '  ' . FormatJSON::encode( $postJSON );
 				}
 			}
 			echo "\n]}]";
@@ -103,11 +103,10 @@ class SpecialExport extends SpecialPage {
 		} else {
 			$formDescriptor = array();
 
-			$htmlForm = HTMLForm::factory('div', $formDescriptor, $this->getContext(), 'flowthread_export_form');
+			$htmlForm = HTMLForm::factory( 'div', $formDescriptor, $this->getContext(), 'flowthread_export_form' );
 
-			$htmlForm->setSubmitTextMsg('flowthreadexport-submit');
+			$htmlForm->setSubmitTextMsg( 'flowthreadexport-submit' );
 			$htmlForm->show();
 		}
-
 	}
 }

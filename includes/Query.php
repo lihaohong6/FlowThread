@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\MediaWikiServices;
@@ -25,99 +26,101 @@ class Query {
 	public $posts = null;
 
 	public function fetch() {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
 		$comments = array();
 		$parentLookup = array();
 
 		$options = array(
 			'OFFSET' => $this->offset,
-			'ORDER BY' => 'flowthread_id ' . ($this->dir === 'older' ? 'DESC' : 'ASC'),
+			'ORDER BY' => 'flowthread_id ' . ( $this->dir === 'older' ? 'DESC' : 'ASC' ),
 		);
-		if ($this->limit !== -1) {
+		if ( $this->limit !== -1 ) {
 			$options['LIMIT'] = $this->limit;
 		}
 
 		$cond = [];
-		if ($this->pageid) {
+		if ( $this->pageid ) {
 			$cond['flowthread_pageid'] = $this->pageid;
 		}
-		if ($this->user) {
+		if ( $this->user ) {
 			$cond['flowthread_username'] = $this->user;
 		}
-		if ($this->keyword) {
-			$cond[] = 'flowthread_text' . $dbr->buildLike($dbr->anyString(), $this->keyword, $dbr->anyString());
+		if ( $this->keyword ) {
+			$cond[] = 'flowthread_text' . $dbr->buildLike( $dbr->anyString(), $this->keyword, $dbr->anyString() );
 		}
-		if ($this->threadMode) {
+		if ( $this->threadMode ) {
 			$cond[] = 'flowthread_parentid IS NULL';
 		}
 
-		switch ($this->filter) {
-		case static::FILTER_ALL:
-			break;
-		case static::FILTER_NORMAL:
-			$cond['flowthread_status'] = Post::STATUS_NORMAL;
-			break;
-		case static::FILTER_REPORTED:
-			$cond['flowthread_status'] = Post::STATUS_NORMAL;
-			$cond[] = 'flowthread_report > 0';
-			break;
-		case self::FILTER_DELETED:
-			$cond['flowthread_status'] = Post::STATUS_DELETED;
-			break;
-		case self::FILTER_SPAM:
-			$cond['flowthread_status'] = Post::STATUS_SPAM;
-			break;
+		switch ( $this->filter ) {
+			case static::FILTER_ALL:
+				break;
+			case static::FILTER_NORMAL:
+				$cond['flowthread_status'] = Post::STATUS_NORMAL;
+				break;
+			case static::FILTER_REPORTED:
+				$cond['flowthread_status'] = Post::STATUS_NORMAL;
+				$cond[] = 'flowthread_report > 0';
+				break;
+			case self::FILTER_DELETED:
+				$cond['flowthread_status'] = Post::STATUS_DELETED;
+				break;
+			case self::FILTER_SPAM:
+				$cond['flowthread_status'] = Post::STATUS_SPAM;
+				break;
 		}
 
 		// Get all root posts
-		$res = $dbr->select('FlowThread', Post::getRequiredColumns(),
-			$cond, __METHOD__, $options);
+		$res = $dbr->select(
+			'FlowThread',
+			Post::getRequiredColumns(),
+			$cond,
+			__METHOD__,
+			$options
+		);
 
 		$sqlPart = '';
-		foreach ($res as $row) {
-			$post = Post::newFromDatabaseRow($row);
+		foreach ( $res as $row ) {
+			$post = Post::newFromDatabaseRow( $row );
 			$comments[] = $post;
 			$parentLookup[$post->id->getBin()] = $post;
 
 			// Build SQL Statement for children query
-			if ($sqlPart) {
+			if ( $sqlPart ) {
 				$sqlPart .= ',';
 			}
-			$sqlPart .= $dbr->addQuotes($post->id->getBin());
+			$sqlPart .= $dbr->addQuotes( $post->id->getBin() );
 		}
 
-		if ($this->threadMode) {
-			$this->totalCount = $dbr->newSelectQueryBuilder()
-				->select('COUNT(*)')
-				->from('FlowThread')
-				->where($cond)
-				->caller(__METHOD__)
-				->fetchField();
+		if ( $this->threadMode ) {
+			$this->totalCount = $dbr->newSelectQueryBuilder()->select( 'COUNT(*)' )->from( 'FlowThread' )->where(
+					$cond
+				)->caller( __METHOD__ )->fetchField();
 
 			// Recursively get all children post list
 			// This is not really resource consuming as you might think, as we use IN to boost it up
-			while ($sqlPart) {
+			while ( $sqlPart ) {
 				$cond = array(
 					'flowthread_pageid' => $this->pageid,
 					'flowthread_parentid IN(' . $sqlPart . ')',
 				);
-				switch ($this->filter) {
-				case static::FILTER_ALL:
-					break;
-				// Other cases shouldn't match
-				default:
-					$cond['flowthread_status'] = Post::STATUS_NORMAL;
-					break;
+				switch ( $this->filter ) {
+					case static::FILTER_ALL:
+						break;
+					// Other cases shouldn't match
+					default:
+						$cond['flowthread_status'] = Post::STATUS_NORMAL;
+						break;
 				}
 
-				$res = $dbr->select('FlowThread', Post::getRequiredColumns(), $cond);
+				$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), $cond );
 
 				$sqlPart = '';
 
-				foreach ($res as $row) {
-					$post = Post::newFromDatabaseRow($row);
-					if ($post->parentid) {
+				foreach ( $res as $row ) {
+					$post = Post::newFromDatabaseRow( $row );
+					if ( $post->parentid ) {
 						$post->parent = $parentLookup[$post->parentid->getBin()];
 					}
 
@@ -125,10 +128,10 @@ class Query {
 					$parentLookup[$post->id->getBin()] = $post;
 
 					// Build SQL Statement for children query
-					if ($sqlPart) {
+					if ( $sqlPart ) {
 						$sqlPart .= ',';
 					}
-					$sqlPart .= $dbr->addQuotes($post->id->getBin());
+					$sqlPart .= $dbr->addQuotes( $post->id->getBin() );
 				}
 			}
 		}
@@ -140,10 +143,10 @@ class Query {
 		global $wgTriggerFlowThreadHooks;
 		$wgTriggerFlowThreadHooks = false;
 
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		foreach ($this->posts as $post) {
-			if ($post->isValid()) {
-				$post->eraseSilently($dbw);
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		foreach ( $this->posts as $post ) {
+			if ( $post->isValid() ) {
+				$post->eraseSilently( $dbw );
 			}
 		}
 		$this->posts = array();

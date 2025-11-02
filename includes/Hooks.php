@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\Content\Content;
@@ -15,27 +16,27 @@ use MediaWiki\User\User;
 
 class Hooks {
 
-	public static function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
+	public static function onBeforePageDisplay( OutputPage &$output, Skin &$skin ) {
 		$title = $output->getTitle();
 
 		// If the comments are never allowed on the title, do not load
 		// FlowThread at all.
-		if (!Helper::canEverPostOnTitle($title)) {
+		if ( !Helper::canEverPostOnTitle( $title ) ) {
 			return true;
 		}
 
 		// Do not display when printing
-		if ($output->isPrintable()) {
+		if ( $output->isPrintable() ) {
 			return true;
 		}
 
 		// Disable if not viewing
-		if ($skin->getRequest()->getVal('action', 'view') != 'view') {
+		if ( $skin->getRequest()->getVal( 'action', 'view' ) != 'view' ) {
 			return true;
 		}
 
-		if (self::getPermissionManager()->userHasRight($output->getUser(), 'commentadmin-restricted')) {
-			$output->addJsConfigVars(array('commentadmin' => ''));
+		if ( self::getPermissionManager()->userHasRight( $output->getUser(), 'commentadmin-restricted' ) ) {
+			$output->addJsConfigVars( array( 'commentadmin' => '' ) );
 		}
 
 		global $wgFlowThreadConfig;
@@ -45,85 +46,104 @@ class Hooks {
 		);
 
 		// First check if user can post at all
-		if (!Post::canPost($output->getUser())) {
-			$config['CantPostNotice'] = wfMessage('flowthread-ui-cantpost')->parse();
+		if ( !Post::canPost( $output->getUser() ) ) {
+			$config['CantPostNotice'] = wfMessage( 'flowthread-ui-cantpost' )->parse();
 		} else {
-			$status = SpecialControl::getControlStatus($title);
-			if ($status === SpecialControl::STATUS_OPTEDOUT) {
-				$config['CantPostNotice'] = wfMessage('flowthread-ui-useroptout')->parse();
-			} else if ($status === SpecialControl::STATUS_DISABLED) {
-				$config['CantPostNotice'] = wfMessage('flowthread-ui-disabled')->parse();
+			$status = SpecialControl::getControlStatus( $title );
+			if ( $status === SpecialControl::STATUS_OPTEDOUT ) {
+				$config['CantPostNotice'] = wfMessage( 'flowthread-ui-useroptout' )->parse();
 			} else {
-				$output->addJsConfigVars(array('canpost' => ''));
+				if ( $status === SpecialControl::STATUS_DISABLED ) {
+					$config['CantPostNotice'] = wfMessage( 'flowthread-ui-disabled' )->parse();
+				} else {
+					$output->addJsConfigVars( array( 'canpost' => '' ) );
+				}
 			}
 		}
 
 		global $wgFlowThreadConfig;
-		$output->addJsConfigVars(array('wgFlowThreadConfig' => $config));
-		$output->addModules('ext.flowthread');
+		$output->addJsConfigVars( array( 'wgFlowThreadConfig' => $config ) );
+		$output->addModules( 'ext.flowthread' );
+
 		return true;
 	}
 
-	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater) {
+	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
 		$dir = __DIR__ . '/../sql';
 
 		$dbType = $updater->getDB()->getType();
 
-		$updater->addExtensionTable('FlowThread', "{$dir}/{$dbType}/tables-generated.sql");
+		$updater->addExtensionTable( 'FlowThread', "{$dir}/{$dbType}/tables-generated.sql" );
 
 		return true;
 	}
 
-	public static function onArticleDeleteComplete(&$article, User &$user, $reason, $id, Content $content, LogEntry $logEntry) {
+	public static function onArticleDeleteComplete(
+		&$article,
+		User &$user,
+		$reason,
+		$id,
+		Content $content,
+		LogEntry $logEntry
+	) {
 		$page = new Query();
 		$page->pageid = $id;
 		$page->limit = -1;
 		$page->threadMode = false;
 		$page->fetch();
 		$page->erase();
+
 		return true;
 	}
 
-	public static function onBaseTemplateToolbox(BaseTemplate &$baseTemplate, array &$toolbox) {
-		if (isset($baseTemplate->data['nav_urls']['usercomments'])
-			&& $baseTemplate->data['nav_urls']['usercomments']) {
+	public static function onBaseTemplateToolbox( BaseTemplate &$baseTemplate, array &$toolbox ) {
+		if (
+			isset( $baseTemplate->data['nav_urls']['usercomments'] ) &&
+			$baseTemplate->data['nav_urls']['usercomments']
+		) {
 			$toolbox['usercomments'] = $baseTemplate->data['nav_urls']['usercomments'];
 			$toolbox['usercomments']['id'] = 't-usercomments';
 		}
 	}
 
-	public static function onSidebarBeforeOutput(Skin $skin, &$sidebar) {
-		$commentAdmin = self::getPermissionManager()->userHasRight($skin->getUser(), 'commentadmin-restricted');
+	public static function onSidebarBeforeOutput( Skin $skin, &$sidebar ) {
+		$commentAdmin = self::getPermissionManager()->userHasRight( $skin->getUser(), 'commentadmin-restricted' );
 		$user = $skin->getRelevantUser();
 
-		if ($user && $commentAdmin) {
+		if ( $user && $commentAdmin ) {
 			$sidebar['TOOLBOX'][] = [
-				'text' => wfMessage('sidebar-usercomments')->text(),
-				'href' => SpecialPage::getTitleFor('FlowThreadManage')->getLocalURL(array(
+				'text' => wfMessage( 'sidebar-usercomments' )->text(),
+				'href' => SpecialPage::getTitleFor( 'FlowThreadManage' )->getLocalURL( array(
 					'user' => $user->getName(),
-				)),
+				) ),
 			];
 		}
 	}
 
-	public static function onSkinTemplateNavigation_Universal(SkinTemplate $skinTemplate, array &$links) {
-		$commentAdmin = self::getPermissionManager()->userHasRight($skinTemplate->getUser(), 'commentadmin-restricted');
+	public static function onSkinTemplateNavigation_Universal( SkinTemplate $skinTemplate, array &$links ) {
+		$commentAdmin = self::getPermissionManager()->userHasRight(
+			$skinTemplate->getUser(),
+			'commentadmin-restricted'
+		);
 		$user = $skinTemplate->getRelevantUser();
 
 		$title = $skinTemplate->getRelevantTitle();
-		if (Helper::canEverPostOnTitle($title) && ($commentAdmin || Post::userOwnsPage($skinTemplate->getUser(), $title))) {
+		if (
+			Helper::canEverPostOnTitle( $title ) &&
+			( $commentAdmin || Post::userOwnsPage( $skinTemplate->getUser(), $title ) )
+		) {
 			// add a new action
 			$links['actions']['flowthreadcontrol'] = [
 				'id' => 'ca-flowthreadcontrol',
-				'text' => wfMessage('action-flowthreadcontrol')->text(),
-				'href' => SpecialPage::getTitleFor('FlowThreadControl', $title->getPrefixedDBKey())->getLocalURL()
+				'text' => wfMessage( 'action-flowthreadcontrol' )->text(),
+				'href' => SpecialPage::getTitleFor( 'FlowThreadControl', $title->getPrefixedDBKey() )->getLocalURL()
 			];
 		}
 
 		return true;
 	}
 
-	private static function getPermissionManager() : PermissionManager {
+	private static function getPermissionManager(): PermissionManager {
 		return MediaWikiServices::getInstance()->getPermissionManager();
 	}
 }

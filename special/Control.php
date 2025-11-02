@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\CommentStore\CommentStore;
@@ -26,7 +27,7 @@ class SpecialControl extends FormSpecialPage {
 	protected $currentStatus;
 
 	public function __construct() {
-		parent::__construct('FlowThreadControl', '', false);
+		parent::__construct( 'FlowThreadControl', '', false );
 	}
 
 	public function doesWrites() {
@@ -52,31 +53,33 @@ class SpecialControl extends FormSpecialPage {
 			throw new ErrorPageError( 'nopagetitle', 'nopagetext' );
 		}
 
-		if ( !Helper::canEverPostOnTitle($title) ) {
+		if ( !Helper::canEverPostOnTitle( $title ) ) {
 			// XXX: Should be some different text, but I'm lazy
 			throw new ErrorPageError( 'notargettitle', 'notargettext' );
 		}
 
-		$status = self::getControlStatus($title);
+		$status = self::getControlStatus( $title );
 		$this->currentStatus = $status;
 
-		$isAdmin = MediaWikiServices::getInstance()->getPermissionManager()
-			->userHasRight($this->getUser(), 'commentadmin');
+		$isAdmin = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+				$this->getUser(),
+				'commentadmin'
+			);
 		$this->isAdmin = $isAdmin;
-		$ownsPage = Post::userOwnsPage($this->getUser(), $title);
+		$ownsPage = Post::userOwnsPage( $this->getUser(), $title );
 		$this->ownsPage = $ownsPage;
 
 		// Access granted only if: is comment admin, or the user owns the page and the page is not disabled
 		// by admin.
-		if (!$isAdmin && (!$ownsPage || $status === self::STATUS_DISABLED)) {
-			throw new PermissionsError('commentadmin');
+		if ( !$isAdmin && ( !$ownsPage || $status === self::STATUS_DISABLED ) ) {
+			throw new PermissionsError( 'commentadmin' );
 		}
 	}
 
 	protected function getFormFields() {
 		$fields = [];
 
-		if ($this->currentStatus === self::STATUS_ENABLED) {
+		if ( $this->currentStatus === self::STATUS_ENABLED ) {
 			$fields['Reason'] = [
 				'type' => 'selectandother',
 				'maxlength' => CommentStore::COMMENT_CHARACTER_LIMIT,
@@ -85,7 +88,7 @@ class SpecialControl extends FormSpecialPage {
 				'label-message' => 'flowthreadcontrol-disable-reason',
 			];
 
-			if (!$this->ownsPage && $this->title->getNamespace() === NS_USER) {
+			if ( !$this->ownsPage && $this->title->getNamespace() === NS_USER ) {
 				$fields['AllowOptin'] = [
 					'type' => 'check',
 					'label-message' => 'flowthreadcontrol-allow-optin',
@@ -115,8 +118,8 @@ class SpecialControl extends FormSpecialPage {
 	}
 
 	protected function alterForm( HTMLForm $form ) {
-		$form->setHeaderHtml('');
-		if ($this->currentStatus === self::STATUS_ENABLED) {
+		$form->setHeaderHtml( '' );
+		if ( $this->currentStatus === self::STATUS_ENABLED ) {
 			$form->setSubmitDestructive();
 			$form->setSubmitTextMsg( $this->ownsPage ? 'flowthreadcontrol-optout' : 'flowthreadcontrol-disable' );
 		} else {
@@ -124,16 +127,17 @@ class SpecialControl extends FormSpecialPage {
 		}
 	}
 
-	public function onSubmit(array $data) {
-		$hiddenStatus = intval($data['CurrentStatus']);
-		if ($this->currentStatus !== $hiddenStatus) {
+	public function onSubmit( array $data ) {
+		$hiddenStatus = intval( $data['CurrentStatus'] );
+		if ( $this->currentStatus !== $hiddenStatus ) {
 			$this->currentStatus = $hiddenStatus;
+
 			return true;
 		}
 
 		$disable = $this->currentStatus === self::STATUS_ENABLED;
-		if ($disable) {
-			if ($this->ownsPage || $data['AllowOptin']) {
+		if ( $disable ) {
+			if ( $this->ownsPage || $data['AllowOptin'] ) {
 				$target = self::STATUS_OPTEDOUT;
 			} else {
 				$target = self::STATUS_DISABLED;
@@ -141,20 +145,20 @@ class SpecialControl extends FormSpecialPage {
 		} else {
 			$target = self::STATUS_ENABLED;
 		}
-		self::setControlStatus($this->title, $target);
+		self::setControlStatus( $this->title, $target );
 
 		$context = RequestContext::getMain();
 		$performer = $context->getUser();
 		$reason = $data['Reason'];
-		if (isset($reason[0])){
+		if ( isset( $reason[0] ) ) {
 			$reason = $reason[0];
 		}
-		$logEntry = new ManualLogEntry('comments', $disable ? 'disable' : 'enable');
-		$logEntry->setPerformer($performer);
-		$logEntry->setTarget($this->title);
-		$logEntry->setComment($reason);
+		$logEntry = new ManualLogEntry( 'comments', $disable ? 'disable' : 'enable' );
+		$logEntry->setPerformer( $performer );
+		$logEntry->setTarget( $this->title );
+		$logEntry->setComment( $reason );
 		$logId = $logEntry->insert();
-		$logEntry->publish($logId, 'udp');
+		$logEntry->publish( $logId, 'udp' );
 
 		return true;
 	}
@@ -162,7 +166,7 @@ class SpecialControl extends FormSpecialPage {
 	public function onSuccess() {
 		$out = $this->getOutput();
 
-		if ($this->currentStatus === self::STATUS_ENABLED) {
+		if ( $this->currentStatus === self::STATUS_ENABLED ) {
 			$out->addWikiMsg( 'flowthreadcontrol-disable-success', wfEscapeWikiText( $this->title ) );
 		} else {
 			$out->addWikiMsg( 'flowthreadcontrol-enable-success', wfEscapeWikiText( $this->title ) );
@@ -176,13 +180,17 @@ class SpecialControl extends FormSpecialPage {
 	protected function postText() {
 		$links = [];
 
-		if ( MediaWikiServices::getInstance()->getPermissionManager()->userHasRight( $this->getUser(), 'editinterface' ) ) {
+		if (
+			MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+				$this->getUser(),
+				'editinterface'
+			)
+		) {
 			$linkRenderer = $this->getLinkRenderer();
 			$links[] = $linkRenderer->makeKnownLink(
 				$this->msg( 'flowthreadcontrol-disable-reason-dropdown' )->inContentLanguage()->getTitle(),
 				$this->msg( 'flowthreadcontrol-edit-disable-dropdown' )->text(),
-				[],
-				[ 'action' => 'edit' ]
+				[], [ 'action' => 'edit' ]
 			);
 		}
 
@@ -205,36 +213,40 @@ class SpecialControl extends FormSpecialPage {
 				'showIfEmpty' => false
 			]
 		);
+
 		return $text . $out;
 	}
 
-	public static function getControlStatus(Title $title) {
+	public static function getControlStatus( Title $title ) {
 		$id = $title->getArticleID();
 
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
-		$row = $dbr->selectRow('FlowThreadControl', ['flowthread_ctrl_status'], [
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
+		$row = $dbr->selectRow( 'FlowThreadControl', [ 'flowthread_ctrl_status' ], [
 			'flowthread_ctrl_pageid' => $title->getArticleID(),
-		]);
+		] );
 
-		if ($row === false) return self::STATUS_ENABLED;
-		return intval($row->flowthread_ctrl_status);
+		if ( $row === false ) {
+			return self::STATUS_ENABLED;
+		}
+
+		return intval( $row->flowthread_ctrl_status );
 	}
 
-	public static function setControlStatus(Title $title, $status) {
+	public static function setControlStatus( Title $title, $status ) {
 		$id = $title->getArticleID();
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		if ($status === self::STATUS_ENABLED) {
-			$dbw->delete('FlowThreadControl', [
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		if ( $status === self::STATUS_ENABLED ) {
+			$dbw->delete( 'FlowThreadControl', [
 				'flowthread_ctrl_pageid' => $id,
-			]);
+			] );
 		} else {
 			$values = [
 				'flowthread_ctrl_pageid' => $id,
 				'flowthread_ctrl_status' => $status,
 			];
-			$dbw->upsert('FlowThreadControl', $values, [
+			$dbw->upsert( 'FlowThreadControl', $values, [
 				'flowthread_ctrl_pageid'
-			], $values);
+			], $values );
 		}
 	}
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use Exception;
@@ -40,7 +41,7 @@ class Post {
 
 	public $parent = null; // LAZY
 
-	public function __construct(array $data) {
+	public function __construct( array $data ) {
 		$this->id = $data['id'];
 		$this->pageid = $data['pageid'];
 		$this->userid = $data['userid'];
@@ -66,51 +67,52 @@ class Post {
 		);
 	}
 
-	public static function newFromDatabaseRow(stdClass $row) {
-		$id = UID::fromBin($row->flowthread_id);
+	public static function newFromDatabaseRow( stdClass $row ) {
+		$id = UID::fromBin( $row->flowthread_id );
 
 		// This is either NULL or a binary UID
 		$parentid = $row->flowthread_parentid;
-		if ($parentid !== null) {
-			$parentid = UID::fromBin($parentid);
+		if ( $parentid !== null ) {
+			$parentid = UID::fromBin( $parentid );
 		}
 
 		$data = array(
 			'id' => $id,
-			'pageid' => intval($row->flowthread_pageid),
-			'userid' => intval($row->flowthread_userid),
+			'pageid' => intval( $row->flowthread_pageid ),
+			'userid' => intval( $row->flowthread_userid ),
 			'username' => $row->flowthread_username,
 			'text' => $row->flowthread_text,
 			'parentid' => $parentid,
-			'status' => intval($row->flowthread_status),
-			'like' => intval($row->flowthread_like),
-			'report' => intval($row->flowthread_report),
+			'status' => intval( $row->flowthread_status ),
+			'like' => intval( $row->flowthread_like ),
+			'report' => intval( $row->flowthread_report ),
 		);
 
-		return new self($data);
+		return new self( $data );
 	}
 
-	public static function newFromId(UID $id) {
+	public static function newFromId( UID $id ) {
 		// Do not apply cache here, it will seriously slow down the application
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
-		$row = $dbr->selectRow('FlowThread',
+		$row = $dbr->selectRow(
+			'FlowThread',
 			self::getRequiredColumns(),
-			array('flowthread_id' => $id->getBin())
+			array( 'flowthread_id' => $id->getBin() )
 		);
 
-		if ($row === false) {
-			throw new Exception("Invalid post id");
+		if ( $row === false ) {
+			throw new Exception( "Invalid post id" );
 		}
 
-		return self::newFromDatabaseRow($row);
+		return self::newFromDatabaseRow( $row );
 	}
 
 	/**
 	 * Terminate the API execution for permission reason
 	 */
 	private static function diePermission() {
-		throw new Exception("Current user cannot perform comment the specified administration action");
+		throw new Exception( "Current user cannot perform comment the specified administration action" );
 	}
 
 	/**
@@ -118,22 +120,23 @@ class Post {
 	 *
 	 * @param User $user
 	 *   User who is acting the action
+	 *
 	 * @return
 	 *   True if the user can performe admin
 	 */
-	private static function canPerformAdmin(User $user) {
-		return self::getPermissionManager()->userHasRight($user, 'commentadmin-restricted');
+	private static function canPerformAdmin( User $user ) {
+		return self::getPermissionManager()->userHasRight( $user, 'commentadmin-restricted' );
 	}
 
-	private static function checkIfAdmin(User $user) {
-		if (!self::getPermissionManager()->userHasRight($user, 'commentadmin-restricted')) {
-			throw new Exception("Current user cannot perform comment admin");
+	private static function checkIfAdmin( User $user ) {
+		if ( !self::getPermissionManager()->userHasRight( $user, 'commentadmin-restricted' ) ) {
+			throw new Exception( "Current user cannot perform comment admin" );
 		}
 	}
 
-	private static function checkIfAdminFull(User $user) {
-		if (!self::getPermissionManager()->userHasRight($user, 'commentadmin')) {
-			throw new Exception("Current user cannot perform full comment admin");
+	private static function checkIfAdminFull( User $user ) {
+		if ( !self::getPermissionManager()->userHasRight( $user, 'commentadmin' ) ) {
+			throw new Exception( "Current user cannot perform full comment admin" );
 		}
 	}
 
@@ -144,196 +147,209 @@ class Post {
 	 *   User who is acting the action
 	 * @param Title $title
 	 *   Page on which the action is acting
+	 *
 	 * @return
 	 *   True if the page belongs to the user
 	 */
-	public static function userOwnsPage(User $user, Title $title) {
-		if ($title->getNamespace() === NS_USER && $title->getRootText() === $user->getName()) {
+	public static function userOwnsPage( User $user, Title $title ) {
+		if ( $title->getNamespace() === NS_USER && $title->getRootText() === $user->getName() ) {
 			return true;
 		}
+
 		return false;
 	}
 
-	public static function canPost(User $user) {
+	public static function canPost( User $user ) {
 		/* Disallow blocked user to post */
-		if ($user->getBlock()) {
+		if ( $user->getBlock() ) {
 			return false;
 		}
 		/* User without comment right cannot post */
-		if (!self::getPermissionManager()->userHasRight($user, 'comment')) {
+		if ( !self::getPermissionManager()->userHasRight( $user, 'comment' ) ) {
 			return false;
 		}
 		/* Prevent cross-site request forgeries */
-		if (MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly()) {
+		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 			return false;
 		}
+
 		return true;
 	}
 
-	public static function checkIfCanPost(User $user) {
+	public static function checkIfCanPost( User $user ) {
 		/* Disallow blocked user to post */
-		if ($user->getBlock()) {
-			throw new Exception('User blocked');
+		if ( $user->getBlock() ) {
+			throw new Exception( 'User blocked' );
 		}
 		/* User without comment right cannot post */
-		if (!self::getPermissionManager()->userHasRight($user, 'comment')) {
-			throw new Exception("Current user cannot post comment");
+		if ( !self::getPermissionManager()->userHasRight( $user, 'comment' ) ) {
+			throw new Exception( "Current user cannot post comment" );
 		}
 		/* Prevent cross-site request forgeries */
-		if (MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly()) {
-			throw new Exception("Site in readonly mode");
+		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
+			throw new Exception( "Site in readonly mode" );
 		}
 	}
 
-	private static function checkIfCanVote(User $user) {
-		self::checkIfCanPost($user);
-		if ($user->getId() == 0) {
-			throw new Exception("Must login first");
+	private static function checkIfCanVote( User $user ) {
+		self::checkIfCanPost( $user );
+		if ( $user->getId() == 0 ) {
+			throw new Exception( "Must login first" );
 		}
 	}
 
-	private function publishSimpleLog($subtype, User $initiator) {
-		$logEntry = new ManualLogEntry('comments', $subtype);
-		$logEntry->setPerformer($initiator);
-		$logEntry->setTarget(Title::newFromId($this->pageid));
-		$logEntry->setParameters(array(
+	private function publishSimpleLog( $subtype, User $initiator ) {
+		$logEntry = new ManualLogEntry( 'comments', $subtype );
+		$logEntry->setPerformer( $initiator );
+		$logEntry->setTarget( Title::newFromId( $this->pageid ) );
+		$logEntry->setParameters( array(
 			'4::username' => $this->username,
-		));
+		) );
 		$logId = $logEntry->insert();
-		$logEntry->publish($logId, 'udp');
+		$logEntry->publish( $logId, 'udp' );
 	}
 
-	private function switchStatus($newStatus) {
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		$dbw->update('FlowThread', array(
+	private function switchStatus( $newStatus ) {
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$dbw->update( 'FlowThread', array(
 			'flowthread_status' => $newStatus,
 		), array(
 			'flowthread_id' => $this->id->getBin(),
-		));
+		) );
 	}
 
-	public function recover(User $user) {
-		self::checkIfAdmin($user);
+	public function recover( User $user ) {
+		self::checkIfAdmin( $user );
 
 		// Recover is invalid for a not-deleted post
-		if (!$this->isDeleted()) {
-			throw new Exception("Post is not deleted");
+		if ( !$this->isDeleted() ) {
+			throw new Exception( "Post is not deleted" );
 		}
 
 		// Mark status as normal
-		$this->switchStatus(static::STATUS_NORMAL);
+		$this->switchStatus( static::STATUS_NORMAL );
 
 		// Write a log
-		$this->publishSimpleLog('recover', $user);
+		$this->publishSimpleLog( 'recover', $user );
 
 		global $wgTriggerFlowThreadHooks;
-		if ($wgTriggerFlowThreadHooks) {
-			MediaWikiServices::getInstance()->getHookContainer()->run('FlowThreadRecovered', [$this, $user]);
+		if ( $wgTriggerFlowThreadHooks ) {
+			MediaWikiServices::getInstance()->getHookContainer()->run(
+				'FlowThreadRecovered',
+				[
+					$this,
+					$user
+				]
+			);
 		}
 	}
 
-	public function markchecked(User $user) {
-		self::checkIfAdminFull($user);
+	public function markchecked( User $user ) {
+		self::checkIfAdminFull( $user );
 
 		// Mark-as-checked is invalid for a deleted post
-		if ($this->isDeleted()) {
-			throw new Exception("Post is deleted");
+		if ( $this->isDeleted() ) {
+			throw new Exception( "Post is deleted" );
 		}
 
 		// Write a log
-		$this->publishSimpleLog('markchecked', $user);
+		$this->publishSimpleLog( 'markchecked', $user );
 
 		$this->reportCount = 0;
 		$this->updateFavorReportCount();
 
-		$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		$db->delete('FlowThreadAttitude', array(
+		$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$db->delete( 'FlowThreadAttitude', array(
 			'flowthread_att_id' => $this->id->getBin(),
 			'flowthread_att_type' => self::ATTITUDE_REPORT,
-		));
+		) );
 	}
 
-	public function delete(User $user) {
+	public function delete( User $user ) {
 		// Poster himself can delete as well
-		if ($user->getId() === 0 || $user->getId() !== $this->userid) {
-			if (!self::canPerformAdmin($user) &&
-				!self::userOwnsPage($user, Title::newFromId($this->pageid))) {
+		if ( $user->getId() === 0 || $user->getId() !== $this->userid ) {
+			if ( !self::canPerformAdmin( $user ) && !self::userOwnsPage( $user, Title::newFromId( $this->pageid ) ) ) {
 				self::diePermission();
 			}
 		}
 
 		// Delete is not valid for deleted post
-		if ($this->isDeleted()) {
-			throw new Exception("Post is already deleted");
+		if ( $this->isDeleted() ) {
+			throw new Exception( "Post is already deleted" );
 		}
 
-		PopularPosts::invalidateCache($this);
+		PopularPosts::invalidateCache( $this );
 
 		// Mark status as deleted
-		$this->switchStatus(static::STATUS_DELETED);
+		$this->switchStatus( static::STATUS_DELETED );
 
 		// Write a log
-		$this->publishSimpleLog('delete', $user);
+		$this->publishSimpleLog( 'delete', $user );
 
 		global $wgTriggerFlowThreadHooks;
-		if ($wgTriggerFlowThreadHooks) {
-			MediaWikiServices::getInstance()->getHookContainer()->run('FlowThreadDeleted', [$this, $user]);
+		if ( $wgTriggerFlowThreadHooks ) {
+			MediaWikiServices::getInstance()->getHookContainer()->run(
+				'FlowThreadDeleted',
+				[
+					$this,
+					$user
+				]
+			);
 		}
-
 	}
 
 	// Recursively delete a thread and its children
 	// FIXME: Should be somehow protected
-	public function eraseSilently(DBConnRef $db) {
+	public function eraseSilently( DBConnRef $db ) {
 		$counter = 1;
 
-		$db->delete('FlowThread', array(
+		$db->delete( 'FlowThread', array(
 			'flowthread_id' => $this->id->getBin(),
-		));
+		) );
 		// We need to delete attitude as well to free up space
-		$db->delete('FlowThreadAttitude', array(
+		$db->delete( 'FlowThreadAttitude', array(
 			'flowthread_att_id' => $this->id->getBin(),
-		));
+		) );
 
 		$children = $this->getChildren();
-		foreach ($children as $post) {
-			$counter += $post->eraseSilently($db);
+		foreach ( $children as $post ) {
+			$counter += $post->eraseSilently( $db );
 		}
 
 		return $counter;
 	}
 
-	public function erase(User $user) {
-		self::checkIfAdminFull($user);
+	public function erase( User $user ) {
+		self::checkIfAdminFull( $user );
 
 		// To avoid mis-operation, a comment must be deleted (hidden from user) first before it is erased from database
-		if (!$this->isDeleted()) {
-			throw new Exception("Post must be deleted first before erasing");
+		if ( !$this->isDeleted() ) {
+			throw new Exception( "Post must be deleted first before erasing" );
 		}
 
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		$counter = $this->eraseSilently($dbw);
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$counter = $this->eraseSilently( $dbw );
 
 		// Add to log
-		$logEntry = new ManualLogEntry('comments', 'erase');
-		$logEntry->setPerformer($user);
-		$logEntry->setTarget(Title::newFromId($this->pageid));
-		$logEntry->setParameters(array(
+		$logEntry = new ManualLogEntry( 'comments', 'erase' );
+		$logEntry->setPerformer( $user );
+		$logEntry->setTarget( Title::newFromId( $this->pageid ) );
+		$logEntry->setParameters( array(
 			'4::postid' => $this->username,
 			'5::children' => $counter - 1,
-		));
+		) );
 		$logId = $logEntry->insert();
-		$logEntry->publish($logId, 'udp');
+		$logEntry->publish( $logId, 'udp' );
 
 		$this->invalidate();
 	}
 
 	public function post() {
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		if (!$this->id) {
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		if ( !$this->id ) {
 			$this->id = UID::generate();
 		}
-		$dbw->insert('FlowThread', array(
+		$dbw->insert( 'FlowThread', array(
 			'flowthread_id' => $this->id->getBin(),
 			'flowthread_pageid' => $this->pageid,
 			'flowthread_userid' => $this->userid,
@@ -343,13 +359,12 @@ class Post {
 			'flowthread_status' => $this->status,
 			'flowthread_like' => $this->favorCount,
 			'flowthread_report' => $this->reportCount,
-		));
+		) );
 
 		global $wgTriggerFlowThreadHooks;
-		if ($wgTriggerFlowThreadHooks) {
-			MediaWikiServices::getInstance()->getHookContainer()->run('FlowThreadPosted', [$this]);
+		if ( $wgTriggerFlowThreadHooks ) {
+			MediaWikiServices::getInstance()->getHookContainer()->run( 'FlowThreadPosted', [ $this ] );
 		}
-
 	}
 
 	public function isDeleted() {
@@ -358,12 +373,13 @@ class Post {
 	}
 
 	public function isVisible() {
-		if ($this->isDeleted()) {
+		if ( $this->isDeleted() ) {
 			return false;
 		}
-		if ($this->parentid === null) {
+		if ( $this->parentid === null ) {
 			return true;
 		}
+
 		return $this->getParent()->isVisible();
 	}
 
@@ -373,35 +389,38 @@ class Post {
 
 	public function isValid() {
 		// This can happen if code is continuing to operate on post after it is erased
-		if ($this->id === null) {
+		if ( $this->id === null ) {
 			return false;
 		}
+
 		return true;
 	}
 
 	public function validate() {
-		if (!$this->isValid()) {
-			throw new Exception("Invalid post");
+		if ( !$this->isValid() ) {
+			throw new Exception( "Invalid post" );
 		}
 	}
 
 	public function getParent() {
-		if ($this->parentid === null) {
+		if ( $this->parentid === null ) {
 			return null;
 		}
-		if ($this->parent === null) {
-			$this->parent = self::newFromId($this->parentid);
+		if ( $this->parent === null ) {
+			$this->parent = self::newFromId( $this->parentid );
 		}
+
 		return $this->parent;
 	}
 
 	public function getNestLevel() {
 		$level = 0;
 		$item = $this->getParent();
-		while ($item) {
+		while ( $item ) {
 			$item = $item->getParent();
 			$level++;
 		}
+
 		return $level;
 	}
 
@@ -412,18 +431,22 @@ class Post {
 	public function getChildren() {
 		$this->validate();
 
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
-		$res = $dbr->select('FlowThread',
-			self::getRequiredColumns(), array(
-				'flowthread_pageid' => $this->pageid, # This line is critical in performance, as we indexed pageid
+		$res = $dbr->select(
+			'FlowThread',
+			self::getRequiredColumns(),
+			array(
+				'flowthread_pageid' => $this->pageid,
+				# This line is critical in performance, as we indexed pageid
 				'flowthread_parentid' => $this->id->getBin(),
-			));
+			)
+		);
 
 		$comments = array();
 
-		foreach ($res as $row) {
-			$post = self::newFromDatabaseRow($row);
+		foreach ( $res as $row ) {
+			$post = self::newFromDatabaseRow( $row );
 			$comments[] = $post;
 		}
 
@@ -438,78 +461,84 @@ class Post {
 		return $this->reportCount;
 	}
 
-	public function getUserAttitude(User $user) {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
-		$row = $dbr->selectRow('FlowThreadAttitude', 'flowthread_att_type', array(
+	public function getUserAttitude( User $user ) {
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
+		$row = $dbr->selectRow( 'FlowThreadAttitude', 'flowthread_att_type', array(
 			'flowthread_att_id' => $this->id->getBin(),
 			'flowthread_att_userid' => $user->getId(),
-		));
-		if ($row === false) {
+		) );
+		if ( $row === false ) {
 			return static::ATTITUDE_NORMAL;
 		} else {
-			return intval($row->flowthread_att_type);
+			return intval( $row->flowthread_att_type );
 		}
 	}
 
 	private function updateFavorReportCount() {
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
-		$dbw->update('FlowThread', array(
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$dbw->update( 'FlowThread', array(
 			'flowthread_like' => $this->favorCount,
 			'flowthread_report' => $this->reportCount,
 		), array(
 			'flowthread_id' => $this->id->getBin(),
-		));
+		) );
 	}
 
-	public function setUserAttitude(User $user, $att) {
-		self::checkIfCanVote($user);
+	public function setUserAttitude( User $user, $att ) {
+		self::checkIfCanVote( $user );
 
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_PRIMARY);
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
 
 		// Get current attitude
-		$oldatt = $this->getUserAttitude($user);
+		$oldatt = $this->getUserAttitude( $user );
 
 		// Short path, return if they match
-		if ($oldatt === $att) {
+		if ( $oldatt === $att ) {
 			return;
 		}
 
 		// Delete entry if the attitude is neutral
-		if ($att === static::ATTITUDE_NORMAL) {
-			$dbw->delete('FlowThreadAttitude', array(
+		if ( $att === static::ATTITUDE_NORMAL ) {
+			$dbw->delete( 'FlowThreadAttitude', array(
 				'flowthread_att_id' => $this->id->getBin(),
 				'flowthread_att_userid' => $user->getId(),
-			));
-		} else if ($oldatt !== static::ATTITUDE_NORMAL) {
-			$dbw->update('FlowThreadAttitude', array(
-				'flowthread_att_type' => $att,
-			), array(
-				'flowthread_att_id' => $this->id->getBin(),
-				'flowthread_att_userid' => $user->getId(),
-			));
+			) );
 		} else {
-			$dbw->insert('FlowThreadAttitude', array(
-				'flowthread_att_id' => $this->id->getBin(),
-				'flowthread_att_type' => $att,
-				'flowthread_att_userid' => $user->getId(),
-			));
+			if ( $oldatt !== static::ATTITUDE_NORMAL ) {
+				$dbw->update( 'FlowThreadAttitude', array(
+					'flowthread_att_type' => $att,
+				), array(
+					'flowthread_att_id' => $this->id->getBin(),
+					'flowthread_att_userid' => $user->getId(),
+				) );
+			} else {
+				$dbw->insert( 'FlowThreadAttitude', array(
+					'flowthread_att_id' => $this->id->getBin(),
+					'flowthread_att_type' => $att,
+					'flowthread_att_userid' => $user->getId(),
+				) );
+			}
 		}
 
 		// Update number in the main table
-		if ($oldatt === static::ATTITUDE_LIKE) {
+		if ( $oldatt === static::ATTITUDE_LIKE ) {
 			$this->favorCount--;
-		} else if ($oldatt === static::ATTITUDE_REPORT) {
-			$this->reportCount--;
+		} else {
+			if ( $oldatt === static::ATTITUDE_REPORT ) {
+				$this->reportCount--;
+			}
 		}
-		if ($att === static::ATTITUDE_LIKE) {
+		if ( $att === static::ATTITUDE_LIKE ) {
 			$this->favorCount++;
-		} else if ($att === static::ATTITUDE_REPORT) {
-			$this->reportCount++;
+		} else {
+			if ( $att === static::ATTITUDE_REPORT ) {
+				$this->reportCount++;
+			}
 		}
 		$this->updateFavorReportCount();
 	}
 
-	private static function getPermissionManager() : PermissionManager {
+	private static function getPermissionManager(): PermissionManager {
 		return MediaWikiServices::getInstance()->getPermissionManager();
 	}
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace FlowThread;
 
 use MediaWiki\Exception\ErrorPageError;
@@ -11,44 +12,44 @@ class SpecialLink extends RedirectSpecialPage {
 	private $query = array();
 
 	public function __construct() {
-		parent::__construct('FlowThreadLink');
+		parent::__construct( 'FlowThreadLink' );
 	}
 
-	public function getRedirect($subpage) {
-		if ($subpage) {
-			$post = Post::newFromId(UID::fromHex($subpage));
-			if ($post) {
-				while ($post->getParent()) {
+	public function getRedirect( $subpage ) {
+		if ( $subpage ) {
+			$post = Post::newFromId( UID::fromHex( $subpage ) );
+			if ( $post ) {
+				while ( $post->getParent() ) {
 					$post = $post->getParent();
 				}
 
-				$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef(DB_REPLICA);
+				$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
 				$cond = array(
 					'flowthread_pageid' => $post->pageid,
-					'flowthread_id > ' . $db->addQuotes($post->id->getBin()),
+					'flowthread_id > ' . $db->addQuotes( $post->id->getBin() ),
 					'flowthread_parentid IS NULL',
 					'flowthread_status' => Post::STATUS_NORMAL,
 				);
 
-				$row = $db->selectRow('FlowThread', array(
+				$row = $db->selectRow( 'FlowThread', array(
 					'count' => 'count(*)',
-				), $cond);
+				), $cond );
 
-				if ($row) {
-					$pageCount = intval($row->count / 10) + 1;
-					if ($pageCount !== 1) {
+				if ( $row ) {
+					$pageCount = intval( $row->count / 10 ) + 1;
+					if ( $pageCount !== 1 ) {
 						$this->query['flowthread-page'] = $pageCount;
 					}
 				}
 
-				return Title::newFromId($post->pageid)->createFragmentTarget('comment-' . $subpage);
+				return Title::newFromId( $post->pageid )->createFragmentTarget( 'comment-' . $subpage );
 			}
 		}
-		throw new ErrorPageError('nopagetitle', 'nopagetext');
+		throw new ErrorPageError( 'nopagetitle', 'nopagetext' );
 	}
 
-	public function getRedirectQuery($subpage) {
+	public function getRedirectQuery( $subpage ) {
 		return $this->query;
 	}
 }
