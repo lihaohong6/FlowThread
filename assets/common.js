@@ -1,5 +1,5 @@
-var config = mw.config.get( 'wgFlowThreadConfig' );
-var replyBox = null;
+const config = mw.config.get( 'wgFlowThreadConfig' );
+let replyBox = null;
 
 /* Get avatar by user name */
 function getAvatar( id, username ) {
@@ -12,8 +12,8 @@ function getAvatar( id, username ) {
 
 /* Get user friendly time string (such as 1 hour age) */
 function getTimeString( time ) {
-	var m = moment( time ).locale( mw.config.get( 'wgUserLanguage' ) );
-	var diff = Date.now() - time;
+	const m = moment( time ).locale( mw.config.get( 'wgUserLanguage' ) );
+	const diff = Date.now() - time;
 	if ( 0 < diff && diff < 24 * 3600 * 1000 ) {
 		return m.fromNow();
 	} else {
@@ -22,7 +22,7 @@ function getTimeString( time ) {
 }
 
 function Thread() {
-	var template = '<div class="comment-thread"><div class="comment-post">'
+	const template = '<div class="comment-thread"><div class="comment-post">'
 		+ '<div class="comment-avatar">'
 		+ '<img src=""></img>'
 		+ '</div>'
@@ -34,7 +34,7 @@ function Thread() {
 		+ '</div>'
 		+ '</div></div></div>';
 
-	var object = $( template );
+	const object = $( template );
 
 	this.post = null;
 	this.object = object;
@@ -48,11 +48,11 @@ Thread.fromId = function ( id ) {
 }
 
 Thread.prototype.init = function ( post ) {
-	var object = this.object;
+	const object = this.object;
 	this.post = post;
 	object.attr( 'id', 'comment-' + post.id );
 
-	var userlink;
+	let userlink;
 	if ( post.userid !== 0 ) {
 		userlink = wrapPageLink( 'User:' + post.username, post.username );
 	} else {
@@ -61,7 +61,7 @@ Thread.prototype.init = function ( post ) {
 
 	if ( post.title ) {
 		// Enhance the username by adding page title
-		var pageLink = wrapPageLink( 'Special:FlowThreadLink/' + post.id, post.title );
+		const pageLink = wrapPageLink( 'Special:FlowThreadLink/' + post.id, post.title );
 		userlink = mw.msg( 'flowthread-ui-user-post-on-page', userlink, pageLink );
 	}
 
@@ -90,13 +90,13 @@ Thread.prototype.prependChild = function ( thread ) {
 }
 
 function wrapText( text ) {
-	var span = $( '<span/>' );
+	const span = $( '<span/>' );
 	span.text( text );
 	return span.wrapAll( '<div/>' ).parent().html();
 }
 
 function wrapPageLink( page, name ) {
-	var link = $( '<a/>' );
+	const link = $( '<a/>' );
 	link.attr( 'href', mw.util.getUrl( page ) );
 	link.text( name );
 	return link.wrapAll( '<div/>' ).parent().html();
@@ -113,7 +113,7 @@ Thread.prototype.reply = function () {
 }
 
 Thread.prototype.like = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'like',
@@ -124,7 +124,7 @@ Thread.prototype.like = function () {
 }
 
 Thread.prototype.dislike = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'dislike',
@@ -135,7 +135,7 @@ Thread.prototype.dislike = function () {
 }
 
 Thread.prototype.report = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'report',
@@ -151,14 +151,14 @@ Thread.prototype.delete = function () {
 		this.deletionLock = true;
 		this.object.find( '.comment-delete' ).first().text( mw.msg( 'flowthread-ui-delete_confirmation' ) );
 		this.object.find( '.comment-delete' ).first().css( 'color', 'rgb(163, 31,8)' );
-		var _this = this;
+		const _this = this;
 		setTimeout( function () {
 			_this.deletionLock = false;
 			_this.object.find( '.comment-delete' ).first().removeAttr( 'style' );
 			_this.object.find( '.comment-delete' ).first().text( mw.msg( 'flowthread-ui-delete' ) );
 		}, 1500 );
 	} else {
-		var api = new mw.Api();
+		const api = new mw.Api();
 		api.post( {
 			action: 'flowthread',
 			type: 'delete',
@@ -175,17 +175,17 @@ Thread.prototype.markAsPopular = function () {
 }
 
 function createReplyBox( thread ) {
-	var replyBox = new ReplyBox( thread );
+	const replyBox = new ReplyBox( thread );
 
 	replyBox.onSubmit = function () {
-		var text = replyBox.getValue().trim();
+		const text = replyBox.getValue().trim();
 		if ( !text ) {
 			showMsgDialog( mw.msg( 'flowthread-ui-nocontent' ) );
 			return;
 		}
 		replyBox.setValue( '' );
-		var api = new mw.Api();
-		var req = {
+		const api = new mw.Api();
+		const req = {
 			action: 'flowthread',
 			type: 'post',
 			pageid: ( thread && thread.post.pageid ) || mw.config.get( 'wgArticleId' ),
@@ -206,7 +206,7 @@ function createReplyBox( thread ) {
 }
 
 function ReplyBox( thread ) {
-	var template = '<div class="comment-replybox">'
+	const template = '<div class="comment-replybox">'
 		+ '<div class="comment-avatar">'
 		+ '<img src="' + getAvatar( mw.user.getId(), mw.user.id() ) + '"></img>'
 		+ '</div>'
@@ -220,8 +220,8 @@ function ReplyBox( thread ) {
 		+ '</div>'
 		+ '</div></div>';
 
-	var self = this;
-	var object = $( template );
+	const self = this;
+	const object = $( template );
 	this.object = object;
 	this.thread = thread;
 
@@ -231,17 +231,17 @@ function ReplyBox( thread ) {
 	} );
 
 	object.find( '.flowthread-btn-preview' ).click( function () {
-		var obj = $( this );
+		const obj = $( this );
 		obj.toggleClass( 'on' );
 
-		var previewPanel = object.find( '.comment-preview' );
+		const previewPanel = object.find( '.comment-preview' );
 
 		if ( obj.hasClass( 'on' ) ) {
 			object.find( 'textarea' ).hide();
 			previewPanel.show();
-			var val = self.getValue().trim();
+			const val = self.getValue().trim();
 			if ( val ) {
-				var api = new mw.Api();
+				const api = new mw.Api();
 				api.get( {
 					action: 'parse',
 					title: ( thread && thread.post.title ) || mw.config.get( 'wgTitle' ),
@@ -262,7 +262,7 @@ function ReplyBox( thread ) {
 	} );
 
 	object.find( '.flowthread-btn-wikitext' ).click( function () {
-		var on = $( this ).toggleClass( 'on' ).hasClass( 'on' );
+		const on = $( this ).toggleClass( 'on' ).hasClass( 'on' );
 		if ( !on ) {
 			object.find( '.flowthread-btn-preview' ).removeClass( 'on' );
 			object.find( 'textarea' ).show();
@@ -289,7 +289,7 @@ ReplyBox.prototype.setValue = function ( t ) {
 };
 
 ReplyBox.prototype.pack = function () {
-	var textarea = this.object.find( 'textarea' );
+	const textarea = this.object.find( 'textarea' );
 	textarea.height( 1 ).height( Math.max( textarea[0].scrollHeight, 60 ) );
 }
 

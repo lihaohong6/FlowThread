@@ -1,10 +1,10 @@
-var filter;
-var deleted;
-var fulladmin = mw.config.exists( 'commentadmin' );
+let filter;
+let deleted;
+const fulladmin = mw.config.exists( 'commentadmin' );
 
 function createThread( post ) {
-	var thread = new Thread();
-	var object = thread.object;
+	const thread = new Thread();
+	const object = thread.object;
 
 	thread.init( post );
 
@@ -65,7 +65,7 @@ function createThread( post ) {
 }
 
 Thread.prototype.recover = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'recover',
@@ -75,7 +75,7 @@ Thread.prototype.recover = function () {
 };
 
 Thread.prototype.markchecked = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'markchecked',
@@ -90,7 +90,7 @@ Thread.prototype.markchecked = function () {
 };
 
 Thread.prototype.erase = function () {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'erase',
@@ -112,7 +112,7 @@ Thread.join = function ( threads ) {
 };
 
 Thread.delete = function ( threads ) {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'delete',
@@ -122,7 +122,7 @@ Thread.delete = function ( threads ) {
 };
 
 Thread.recover = function ( threads ) {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'recover',
@@ -132,7 +132,7 @@ Thread.recover = function ( threads ) {
 };
 
 Thread.erase = function ( threads ) {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'erase',
@@ -142,7 +142,7 @@ Thread.erase = function ( threads ) {
 };
 
 Thread.markchecked = function ( threads ) {
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.post( {
 		action: 'flowthread',
 		type: 'markchecked',
@@ -166,55 +166,55 @@ function reloadComments() {
 function getParams() {
 	// Deliberate global value update
 	filter = mw.util.getParamValue( 'filter' ) || 'all';
-	deleted = filter === 'deleted' || filter == 'spam';
-	var offset = parseInt( mw.util.getParamValue( 'offset' ) ) || 0;
-	var limit = parseInt( mw.util.getParamValue( 'limit' ) ) || 20;
-	var query = {
+	deleted = filter === 'deleted' || filter === 'spam';
+	const offset = parseInt( mw.util.getParamValue( 'offset' ) ) || 0;
+	const limit = parseInt( mw.util.getParamValue( 'limit' ) ) || 20;
+	const query = {
 		filter: filter,
 		offset: offset,
 		limit: limit,
 	};
-	var page = mw.util.getParamValue( 'page' );
+	const page = mw.util.getParamValue( 'page' );
 	if ( page ) query.page = page;
-	var user = mw.util.getParamValue( 'user' );
+	const user = mw.util.getParamValue( 'user' );
 	if ( user ) query.user = user;
-	var keyword = mw.util.getParamValue( 'keyword' );
+	const keyword = mw.util.getParamValue( 'keyword' );
 	if ( keyword ) query.keyword = keyword;
-	var dir = mw.util.getParamValue( 'dir' );
+	const dir = mw.util.getParamValue( 'dir' );
 	if ( dir ) query.dir = dir;
 	return query;
 }
 
 function loadComments() {
-	var query = getParams();
+	const query = getParams();
 
-	var apiQuery = $.extend( {
+	const apiQuery = $.extend( {
 		action: 'flowthread',
 		type: 'listall',
 		utf8: '',
 	}, query );
 	// "All" comments actually exclude deleted and spam comments!
-	if ( apiQuery.filter == 'all' ) apiQuery.filter = 'normal';
+	if ( apiQuery.filter === 'all' ) apiQuery.filter = 'normal';
 	apiQuery.dir = apiQuery.dir === 'prev' ? 'newer' : 'older';
 	if ( 'page' in apiQuery ) {
 		apiQuery.title = apiQuery.page;
 		delete apiQuery.page;
 	}
 
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.get( apiQuery ).done( function ( data ) {
 		$( '.comment-container' ).html( '' );
 		data.flowthread.posts.forEach( function ( item ) {
 			$( '.comment-container' ).append( createThread( item ).object );
 		} );
-		var more = 'more' in data.flowthread;
-		var prev = $( '#pager-prev' );
-		var next = $( '#pager-next' );
-		var first = $( '#pager-first' );
-		var last = $( '#pager-last' );
+		const more = 'more' in data.flowthread;
+		let prev = $( '#pager-prev' );
+		let next = $( '#pager-next' );
+		let first = $( '#pager-first' );
+		let last = $( '#pager-last' );
 		if ( query.dir === 'prev' ) {
 			// Sigh.. when can MW allow ES6?!!
-			var tmp = next;
+			let tmp = next;
 			next = prev;
 			prev = tmp;
 			tmp = first;
@@ -252,16 +252,18 @@ function wrapButtonMsg( msg ) {
 	return '<button>' + mw.msg( msg ) + '</button>'
 }
 
+const mwContentText = $( "#mw-content-text" );
+
 // Setup batch actions
-var selectAll = $( wrapButtonMsg( 'flowthread-ui-selectall' ) );
-$( "#mw-content-text" ).append( selectAll );
+const selectAll = $( wrapButtonMsg( 'flowthread-ui-selectall' ) );
+mwContentText.append( selectAll );
 selectAll.click( function () {
 	$( '.comment-thread' ).addClass( 'comment-selected' );
 	onSelect();
 } );
 
-var unselectAll = $( wrapButtonMsg( 'flowthread-ui-unselectall' ) );
-$( "#mw-content-text" ).append( unselectAll );
+const unselectAll = $( wrapButtonMsg( 'flowthread-ui-unselectall' ) );
+mwContentText.append( unselectAll );
 unselectAll.click( function () {
 	$( '.comment-thread' ).removeClass( 'comment-selected' );
 	onSelect();
@@ -273,30 +275,35 @@ function getSelectedThreads() {
 	} )
 }
 
+let batchRecover = false,
+	batchErase = false,
+	batchDelete = false,
+	batchMarkchecked = false;
+
 if ( deleted ) {
-	var batchRecover = $( wrapButtonMsg( 'flowthread-ui-recover' ) );
-	$( "#mw-content-text" ).append( batchRecover );
+	batchRecover = $( wrapButtonMsg( 'flowthread-ui-recover' ) );
+	mwContentText.append( batchRecover );
 	batchRecover.click( function () {
 		Thread.recover( getSelectedThreads() );
 	} );
 
 	if ( fulladmin ) {
-		var batchErase = $( wrapButtonMsg( 'flowthread-ui-erase' ) );
-		$( "#mw-content-text" ).append( batchErase );
+		batchErase = $( wrapButtonMsg( 'flowthread-ui-erase' ) );
+		mwContentText.append( batchErase );
 		batchErase.click( function () {
 			Thread.erase( getSelectedThreads() );
 		} );
 	}
 } else {
-	var batchDelete = $( wrapButtonMsg( 'flowthread-ui-delete' ) );
-	$( "#mw-content-text" ).append( batchDelete );
+	batchDelete = $( wrapButtonMsg( 'flowthread-ui-delete' ) );
+	mwContentText.append( batchDelete );
 	batchDelete.click( function () {
 		Thread.delete( getSelectedThreads() );
 	} );
 
 	if ( fulladmin ) {
-		var batchMarkchecked = $( wrapButtonMsg( 'flowthread-ui-markchecked' ) );
-		$( "#mw-content-text" ).append( batchMarkchecked );
+		batchMarkchecked = $( wrapButtonMsg( 'flowthread-ui-markchecked' ) );
+		mwContentText.append( batchMarkchecked );
 		batchMarkchecked.click( function () {
 			Thread.markchecked( getSelectedThreads() );
 		} );

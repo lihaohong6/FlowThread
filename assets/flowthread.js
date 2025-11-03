@@ -1,12 +1,12 @@
-var canpost = mw.config.exists( 'canpost' );
-var ownpage = mw.config.exists( 'commentadmin' ) || mw.config.get( 'wgNamespaceNumber' ) === 2 && mw.config.get( 'wgTitle' ).replace( '/$', '' ) === mw.user.id();
+let canpost = mw.config.exists( 'canpost' );
+const ownpage = mw.config.exists( 'commentadmin' ) || mw.config.get( 'wgNamespaceNumber' ) === 2 && mw.config.get( 'wgTitle' ).replace( '/$', '' ) === mw.user.id();
 
-var commentContainerTop = $( '<div class="comment-container-top" disabled></div>' );
-var commentContainer = $( '<div class="comment-container"></div>' );
+const commentContainerTop = $( '<div class="comment-container-top" disabled></div>' );
+const commentContainer = $( '<div class="comment-container"></div>' );
 
 function createThread( post ) {
-	var thread = new Thread();
-	var object = thread.object;
+	const thread = new Thread();
+	const object = thread.object;
 	thread.init( post );
 
 	if ( canpost ) {
@@ -17,7 +17,7 @@ function createThread( post ) {
 
 	// User not signed in do not have right to vote
 	if ( mw.user.getId() !== 0 ) {
-		var likeNum = post.like ? '(' + post.like + ')' : '';
+		const likeNum = post.like ? '(' + post.like + ')' : '';
 		thread.addButton( 'like', mw.msg( 'flowthread-ui-like' ) + likeNum, function () {
 			if ( object.find( '.comment-like' ).first().attr( 'liked' ) !== undefined ) {
 				thread.dislike();
@@ -33,7 +33,7 @@ function createThread( post ) {
 			}
 		} );
 	} else if ( post.like ) {
-		var likeMsg = mw.msg( 'flowthread-ui-like' ) + '(' + post.like + ')';
+		const likeMsg = mw.msg( 'flowthread-ui-like' ) + '(' + post.like + ')';
 		$( '<span>' ).addClass( 'comment-like' ).css( 'cursor', 'text' ).text( likeMsg ).appendTo( thread.object.find( '.comment-footer' ) );
 	}
 
@@ -58,7 +58,7 @@ function createThread( post ) {
 
 function reloadComments( offset ) {
 	offset = offset || 0;
-	var api = new mw.Api();
+	const api = new mw.Api();
 	api.get( {
 		action: 'flowthread',
 		type: 'list',
@@ -68,16 +68,16 @@ function reloadComments( offset ) {
 	} ).done( function ( data ) {
 		commentContainerTop.html( '<div>' + mw.msg( 'flowthread-ui-popular' ) + '</div>' ).attr( 'disabled', '' );
 		commentContainer.html( '' );
-		var canpostbak = canpost;
+		const canpostbak = canpost;
 		canpost = false; // No reply for topped comments
 		data.flowthread.popular.forEach( function ( item ) {
-			var obj = createThread( item );
+			const obj = createThread( item );
 			obj.markAsPopular();
 			commentContainerTop.removeAttr( 'disabled' ).append( obj.object );
 		} );
 		canpost = canpostbak;
 		data.flowthread.posts.forEach( function ( item ) {
-			var obj = createThread( item );
+			const obj = createThread( item );
 			if ( item.parentid === '' ) {
 				commentContainer.append( obj.object );
 			} else {
@@ -89,7 +89,7 @@ function reloadComments( offset ) {
 		pager.repaint();
 
 		if ( location.hash.substring( 0, 9 ) === '#comment-' ) {
-			var hash = location.hash;
+			const hash = location.hash;
 			location.replace( '#' );
 			location.replace( hash );
 		}
@@ -97,7 +97,7 @@ function reloadComments( offset ) {
 }
 
 function setFollowUp( postid, follow ) {
-	var obj = $( '#comment-' + postid + ' > .comment-post' );
+	const obj = $( '#comment-' + postid + ' > .comment-post' );
 	obj.after( follow );
 }
 
@@ -109,7 +109,7 @@ function Paginator() {
 }
 
 Paginator.prototype.add = function ( page ) {
-	var item = $( '<span>' + ( page + 1 ) + '</span>' );
+	const item = $( '<span>' + ( page + 1 ) + '</span>' );
 	if ( page === this.current ) {
 		item.attr( 'current', '' );
 	}
@@ -130,15 +130,15 @@ Paginator.prototype.repaint = function () {
 	} else {
 		this.object.show();
 	}
-	var pageStart = Math.max( this.current - 2, 0 );
-	var pageEnd = Math.min( this.current + 4, this.count - 1 );
+	const pageStart = Math.max( this.current - 2, 0 );
+	const pageEnd = Math.min( this.current + 4, this.count - 1 );
 	if ( pageStart !== 0 ) {
 		this.add( 0 );
 	}
 	if ( pageStart > 1 ) {
 		this.addEllipse();
 	}
-	for ( var i = pageStart; i <= pageEnd; i++ ) {
+	for ( let i = pageStart; i <= pageEnd; i++ ) {
 		this.add( i );
 	}
 	if ( this.count - pageEnd > 2 ) {
@@ -149,12 +149,12 @@ Paginator.prototype.repaint = function () {
 	}
 }
 
-var pager = new Paginator();
+const pager = new Paginator();
 
 $( document ).ready( () => {
 	$( '#bodyContent' ).after( $( '<div class="post-content" id="flowthread"></div>' ).append( commentContainerTop, commentContainer, pager.object, function () {
 		if ( canpost ) return createReplyBox( null );
-		var noticeContainer = $( '<div>' ).addClass( 'comment-bannotice' );
+		const noticeContainer = $( '<div>' ).addClass( 'comment-bannotice' );
 		noticeContainer.html( config.CantPostNotice );
 		return noticeContainer;
 	}() ) )
