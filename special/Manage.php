@@ -223,11 +223,13 @@ class SpecialManage extends SpecialPage {
 		$firstLastLinks .= $this->getLastPageLink();
 		$firstLastLinks = $this->msg( 'parentheses' )->rawParams( $firstLastLinks )->escaped();
 
-		return $firstLastLinks . $this->msg( 'viewprevnext' )->rawParams(
+		$content = $firstLastLinks . $this->msg( 'viewprevnext' )->rawParams(
 				$this->getPrevPageLink(),
 				$this->getNextPageLink(),
 				$this->getLimitLinks()
 			)->escaped();
+
+		return Html::rawElement( "div", [ 'class' => 'fs-pager-container' ], $content );
 	}
 
 	private function getFirstPageLink() {

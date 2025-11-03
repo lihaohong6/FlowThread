@@ -1,3 +1,5 @@
+@import 'mediawiki.skin.variables.less';
+
 .comment-markchecked {
     margin-left: 5px;
 }
@@ -9,7 +11,7 @@
 }
 
 .comment-recover::before {
-    background-position: 0px 0px;
+    background-position: 0 0;
 }
 
 .comment-recover:hover::before {
@@ -23,12 +25,16 @@
 
 .comment-selected {
     padding-left: 1em;
-    background: lightblue;
+    background: @background-color-progressive-subtle;
+}
+
+.fs-pager-container {
+	cursor: default;
 }
 
 /* a. here is necessary to increase priority */
-a.pager-disable {
-    color: black;
-    cursor: text;
+a.pager-disable, a.pager-disable:hover {
+    color: @color-base;
+    cursor: default;
     text-decoration: none;
 }
