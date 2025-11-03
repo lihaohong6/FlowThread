@@ -1,0 +1,34 @@
+.comment-markchecked {
+    margin-left: 5px;
+}
+
+.comment-markchecked, .comment-recover {
+    margin-left: 5px;
+    cursor: pointer;
+    transition: color 0.15s linear 0s;
+}
+
+.comment-recover::before {
+    background-position: 0px 0px;
+}
+
+.comment-recover:hover::before {
+    opacity: 1.0;
+}
+
+.comment-recover:hover, .comment-markchecked:hover {
+    opacity: 1.0;
+    color: #555;
+}
+
+.comment-selected {
+    padding-left: 1em;
+    background: lightblue;
+}
+
+/* a. here is necessary to increase priority */
+a.pager-disable {
+    color: black;
+    cursor: text;
+    text-decoration: none;
+}

@@ -1,80 +1,85 @@
+@import 'mediawiki.skin.variables.less';
+
+@ft-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+@ft-border: 1px solid @border-color-base;
+@ft-color-box-shadow: white;
+
 .comment-body textarea, .comment-preview {
     /* Metrics */
-    margin: 0px;
+    margin: 0;
     padding: 10px;
     resize: none;
     box-sizing: border-box;
     width: 100%;
     /* Styles */
     display: block;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: @ft-font-family;
     font-size: 13px;
     line-height: 20px;
     /* Borders */
     border-width: 1px 1px medium;
     border-style: solid solid none;
-    border-color: #CCC #CCC #999;
-    border-radius: 3px 3px 0px 0px;
-    background: white;
+    border-color: @border-color-base;
+    border-radius: 3px 3px 0 0;
+    background: @background-color-base;
 }
 
 .comment-body textarea {
-    color: #999;
+    color: @color-base;
     height: 60px;
 }
 
 .comment-preview {
     min-height: 70px;
-    padding-top: 0px;
+    padding-top: 0;
 }
 
 .comment-preview {
-    background: #f8f8f8;
+    background: @background-color-interactive-subtle;
 }
 
 .comment-toolbar {
     position: relative;
     height: 32px;
-    color: #555;
+    color: @color-base;
     padding-left: 10px;
     font-size: 12px;
     line-height: 32px;
-    border: 1px solid #CCC;
-    border-radius: 0px 0px 3px 3px;
-    background: white;
+    border: @ft-border;
+    border-radius: 0 0 3px 3px;
+    background: @background-color-base;
     box-sizing: border-box;
     margin-bottom: 1em;
 }
 
 .comment-submit {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: @ft-font-family;
     position: absolute;
     right: -1px;
     top: -1px;
     height: 32px;
     width: 100px;
     text-align: center;
-    text-shadow: 0px 1px 0px #FFF;
-    color: #555;
+    color: @color-inverted-fixed;
     font-size: 14px;
     font-weight: bold;
-    border: 1px solid #CCC;
-    background-color: white;
+    border: @ft-border;
+    background-color: @background-color-progressive;
     transition: all 0.3s ease-out;
-    box-shadow: 0px 0px 0px white inset, 0px 0px 0px white;
+    box-shadow: 0 0 0 @ft-color-box-shadow inset, 0 0 0 @ft-color-box-shadow;
     cursor: pointer;
-    margin: 0px;
-    padding: 0px;
-    border-radius: 0px 0px 3px 0px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 0 3px 0;
     outline: 0;
 }
 
 .comment-submit:hover {
-    box-shadow: 0px 0px 0px white inset, 0 5px 11px 0 rgba(0,0,0,0.18);
+    box-shadow: 0 0 0 @ft-color-box-shadow inset, 0 5px 11px 0 rgba(0,0,0,0.18);
 }
 
 .comment-submit:active {
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15) inset, 0px 0px 0px white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) inset, 0 0 0 @ft-color-box-shadow;
 }
 
 .flowthread-btn {
@@ -84,10 +89,10 @@
     width: 24px;
     height: 24px;
     margin: 4px;
-    padding: 0px;
+    padding: 0;
     border-radius: 10%;
     outline: 0;
-    border: 0 white;
+    border: 0 @background-color-transparent;
     box-sizing: border-box;
     background-repeat: no-repeat;
     background-position: center;
@@ -100,27 +105,27 @@
 }
 
 .flowthread-btn:hover {
-    border: 1px solid #CCC;
-    box-shadow: 0px 0px 0px white inset,0 5px 11px 0 rgba(0,0,0,0.18);
+    border: @ft-border;
+    box-shadow: 0 0 0 @ft-color-box-shadow inset,0 5px 11px 0 rgba(0,0,0,0.18);
 }
 
 .flowthread-btn:active, .flowthread-btn.on{
-    border: 1px solid #CCC;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15) inset, 0px 0px 0px white;
+    border: @ft-border;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) inset, 0 0 0 @ft-color-box-shadow;
 }
 
 .flowthread-btn.on:hover {
-    border: 1px solid #CCC;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15) inset, 0 5px 11px 0 rgba(0,0,0,0.18);
+    border: @ft-border;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) inset, 0 5px 11px 0 rgba(0,0,0,0.18);
 }
 
 .flowthread-btn.on:active {
-    border: 1px solid #CCC;
-    box-shadow: 0px 0px 0px white inset,0 0 0 0 white;
+    border: @ft-border;
+    box-shadow: 0 0 0 @ft-color-box-shadow inset,0 0 0 0 @ft-color-box-shadow;
 }
 
 .flowthread-btn-preview {
-    width: 0px;
+    width: 0;
     margin: 4px 0;
     opacity: 0;
     visibility: hidden;
@@ -138,9 +143,56 @@
     visibility: visible;
 }
 
+#flowthread {
+	clear: both;
+	margin-top: 2em;
+}
+
+.comment-avatar {
+	float: left;
+}
+
+.comment-thread {
+	border-top: 1px solid rgba(0, 0, 0, 0.13);
+}
+
+.comment-post {
+	padding: 10px;
+}
+
+.comment-body {
+	padding-left: 60px;
+}
+
+.comment-user, .comment-user a {
+	font-size: 13px;
+	margin-right: 8px;
+}
+
+.comment-user {
+	color: @color-subtle;
+}
+
+.comment-text {
+	font-size: 13px;
+	line-height: 1.5em;
+	margin: 0.5em 0px;
+	word-wrap: break-word;
+	/* Added to guard against malacious position:absolute */
+	position: relative;
+	overflow: hidden;
+	min-height: 1em;
+}
+
+.comment-footer {
+	font-size: 12px;
+	margin-right: 8px;
+	color: @color-subtle;
+}
+
 .comment-reply::before, .comment-like::before, .comment-report::before, .comment-delete::before, .comment-recover::before {
     content: "";
-    background: transparent url("sprites.png") no-repeat scroll 0% 0%;
+    background: transparent url("sprites.png") no-repeat scroll 0 0;
     opacity: 0.6;
     display: inline-block;
     width: 15px;
@@ -166,7 +218,7 @@
 }
 
 .comment-reply::before {
-    background-position: 0px 0px;
+    background-position: 0 0;
 }
 
 .comment-like::before {

@@ -88,8 +88,8 @@
         "assets/flowthread.js"
       ],
       "styles": [
-        "assets/common.css",
-        "assets/flowthread.css"
+        "assets/common.less",
+        "assets/flowthread.less"
       ],
       "messages": [
         "flowthread-ui-reply",
@@ -122,8 +122,8 @@
         "assets/manage.js"
       ],
       "styles": [
-        "assets/common.css",
-        "assets/manage.css"
+        "assets/common.less",
+        "assets/manage.less"
       ],
       "messages": [
         "flowthread-ui-reply",
