@@ -25,7 +25,7 @@ class SpecialImport extends FormSpecialPage {
 		parent::execute( $par );
 	}
 
-	public function onSubmit( array $data, HTMLForm $form = null ) {
+	public function onSubmit( array $data ) {
 		// Get uploaded file
 		$upload = &$_FILES['wpjsonimport'];
 

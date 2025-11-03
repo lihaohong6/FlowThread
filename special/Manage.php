@@ -103,10 +103,11 @@ class SpecialManage extends SpecialPage {
 		$html .= Xml::tags( 'p', null, $this->getFilterLinks( $this->filter ) );
 
 		// Submit button
-		$html .= Xml::submitButton( $this->msg( 'allpagessubmit' )->text() );
+		$html .= HTML::submitButton( $this->msg( 'allpagessubmit' )->text() );
 
-		// Fieldset
-		$html = Xml::fieldset( $this->msg( 'flowthreadmanage' )->text(), $html );
+		$html = Html::rawElement( 'legend', null, $this->msg( 'flowthreadmanage' )->text() ) . $html;
+
+		$html = Html::rawElement( 'fieldset', [], $html );
 
 		// Wrap with a form
 		$html = Xml::tags(
@@ -125,9 +126,9 @@ class SpecialManage extends SpecialPage {
 			)
 		) {
 			$link = MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
-					Title::newFromText( 'MediaWiki:Flowthread-blacklist' ),
-					$this->msg( 'flowthread-ui-editblacklist' )
-				);
+				Title::newFromText( 'MediaWiki:Flowthread-blacklist' ),
+				$this->msg( 'flowthread-ui-editblacklist' )
+			);
 			$html .= Xml::tags( 'small', array( 'style' => 'float:right;' ), $link );
 		}
 
@@ -169,41 +170,51 @@ class SpecialManage extends SpecialPage {
 		return $query;
 	}
 
-	private function getUserInput( $user ) {
-		$label = Xml::inputLabel(
-			$this->msg( 'flowthreadmanage-user' )->text(),
-			'user',
-			'',
-			15,
-			$user,
-			array( 'class' => 'mw-autocomplete-user' ) # This together with mediawiki.userSuggest will give us an auto completion
+	private function createInputField( $msgKey, $name, $value, $size, $attribs = [] ) {
+		$label = Html::label(
+			$this->msg( $msgKey )->text(),
+			$name
 		);
 
-		return '<span style="white-space: nowrap">' . $label . '</span>';
+		$attribs['id'] = $name;
+		$attribs['size'] = $size;
+
+		$input = Html::input(
+			$name,
+			$value,
+			'text',
+			$attribs
+		);
+
+		return '<span style="white-space: nowrap">' . $label . "\u{00A0}" . $input . '</span>';
+	}
+
+	private function getUserInput( $user ) {
+		return $this->createInputField(
+			'flowthreadmanage-user',
+			'user',
+			$user,
+			15,
+			[ 'class' => 'mw-autocomplete-user' ]
+		);
 	}
 
 	private function getTitleInput( $title ) {
-		$label = Xml::inputLabel(
-			$this->msg( 'flowthreadmanage-title' )->text(),
+		return $this->createInputField(
+			'flowthreadmanage-title',
 			'page',
-			'',
-			20,
-			$title
+			$title,
+			20
 		);
-
-		return '<span style="white-space: nowrap">' . $label . '</span>';
 	}
 
 	private function getKeywordInput( $keyword ) {
-		$label = Xml::inputLabel(
-			$this->msg( 'flowthreadmanage-keyword' )->text(),
+		return $this->createInputField(
+			'flowthreadmanage-keyword',
 			'keyword',
-			'',
-			20,
-			$keyword
+			$keyword,
+			20
 		);
-
-		return '<span style="white-space: nowrap">' . $label . '</span>';
 	}
 
 	private function getPager() {
@@ -279,11 +290,11 @@ class SpecialManage extends SpecialPage {
 
 	private function getQueryLink( $msg, $query, $id = false ) {
 		return MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
-				$this->getPageTitle(),
-				$msg,
-				[ 'id' => $id ],
-				$query
-			);
+			$this->getPageTitle(),
+			$msg,
+			[ 'id' => $id ],
+			$query
+		);
 	}
 
 }
