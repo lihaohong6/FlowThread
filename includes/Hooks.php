@@ -36,14 +36,14 @@ class Hooks {
 		}
 
 		if ( self::getPermissionManager()->userHasRight( $output->getUser(), 'commentadmin-restricted' ) ) {
-			$output->addJsConfigVars( array( 'commentadmin' => '' ) );
+			$output->addJsConfigVars( [ 'commentadmin' => '' ] );
 		}
 
 		global $wgFlowThreadConfig;
-		$config = array(
+		$config = [
 			'Avatar' => $wgFlowThreadConfig['Avatar'],
 			'AnonymousAvatar' => $wgFlowThreadConfig['AnonymousAvatar'],
-		);
+		];
 
 		// First check if user can post at all
 		if ( !Post::canPost( $output->getUser() ) ) {
@@ -56,13 +56,13 @@ class Hooks {
 				if ( $status === SpecialControl::STATUS_DISABLED ) {
 					$config['CantPostNotice'] = wfMessage( 'flowthread-ui-disabled' )->parse();
 				} else {
-					$output->addJsConfigVars( array( 'canpost' => '' ) );
+					$output->addJsConfigVars( [ 'canpost' => '' ] );
 				}
 			}
 		}
 
 		global $wgFlowThreadConfig;
-		$output->addJsConfigVars( array( 'wgFlowThreadConfig' => $config ) );
+		$output->addJsConfigVars( [ 'wgFlowThreadConfig' => $config ] );
 		$output->addModules( 'ext.flowthread' );
 
 		return true;
@@ -113,9 +113,9 @@ class Hooks {
 		if ( $user && $commentAdmin ) {
 			$sidebar['TOOLBOX'][] = [
 				'text' => wfMessage( 'sidebar-usercomments' )->text(),
-				'href' => SpecialPage::getTitleFor( 'FlowThreadManage' )->getLocalURL( array(
+				'href' => SpecialPage::getTitleFor( 'FlowThreadManage' )->getLocalURL( [
 					'user' => $user->getName(),
-				) ),
+				] ),
 			];
 		}
 	}

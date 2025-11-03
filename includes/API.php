@@ -25,9 +25,9 @@ class API extends ApiBase {
 
 	private function convertPosts( array $posts, $needTitle = false, $priviledged = false ) {
 		$attTable = Helper::batchGetUserAttitude( $this->getUser(), $posts );
-		$ret = array();
+		$ret = [];
 		foreach ( $posts as $post ) {
-			$json = array(
+			$json = [
 				'id' => $post->id->getHex(),
 				'userid' => $post->userid,
 				'username' => $post->username,
@@ -36,7 +36,7 @@ class API extends ApiBase {
 				'parentid' => $post->parentid ? $post->parentid->getHex() : '',
 				'like' => $post->getFavorCount(),
 				'myatt' => $attTable[$post->id->getHex()],
-			);
+			];
 			if ( $needTitle ) {
 				$title = Title::newFromId( $post->pageid );
 				$json['pageid'] = $post->pageid;
@@ -84,11 +84,11 @@ class API extends ApiBase {
 		$popular = PopularPosts::getFromPageId( $pageid );
 		$popularRet = $this->convertPosts( $popular );
 
-		$obj = array(
+		$obj = [
 			"posts" => $comments,
 			"popular" => $popularRet,
 			"count" => $page->totalCount,
-		);
+		];
 
 		return $obj;
 	}
@@ -97,7 +97,7 @@ class API extends ApiBase {
 		if ( !$postList ) {
 			return null;
 		}
-		$ret = array();
+		$ret = [];
 		foreach ( explode( '|', $postList ) as $id ) {
 			try {
 				$ret[] = Post::newFromId( UID::fromHex( $id ) );
@@ -385,7 +385,7 @@ class API extends ApiBase {
 
 					// Construct the object first without setting the text
 					// As we need to use some useful functions on the post object
-					$data = array(
+					$data = [
 						'id' => null,
 						'pageid' => $page,
 						'userid' => $this->getUser()->getId(),
@@ -397,7 +397,7 @@ class API extends ApiBase {
 						// Will be changed later
 						'like' => 0,
 						'report' => 0,
-					);
+					];
 					$postObject = new Post( $data );
 
 					// Need to feed this to spam filter
@@ -499,39 +499,39 @@ class API extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'type' => array(
+		return [
+			'type' => [
 				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => true,
-			),
-			'pageid' => array(
+			],
+			'pageid' => [
 				ParamValidator::PARAM_TYPE => 'integer',
-			),
-			'postid' => array(
+			],
+			'postid' => [
 				ParamValidator::PARAM_TYPE => 'string',
-			),
-			'content' => array(
+			],
+			'content' => [
 				ParamValidator::PARAM_TYPE => 'string',
-			),
-			'wikitext' => array(
+			],
+			'wikitext' => [
 				ParamValidator::PARAM_TYPE => 'boolean',
-			),
-			'offset' => array(
+			],
+			'offset' => [
 				ParamValidator::PARAM_TYPE => 'integer',
-			),
-			'limit' => array(
+			],
+			'limit' => [
 				ParamValidator::PARAM_TYPE => 'integer',
-			),
-		);
+			],
+		];
 	}
 
 	public function getExamplesMessages() {
-		return array(
+		return [
 			'action=flowthread&pageid=1&type=list&limit=max' => 'apihelp-flowthread-example-1',
 			'action=flowthread&pageid=1&type=post&content=Some+Text' => 'apihelp-flowthread-example-2',
 			'action=flowthread&pageid=1&postid=AValidPostID&type=post&content=Some+Text' => 'apihelp-flowthread-example-3',
 			'action=flowthread&postid=AValidPostID&type=like' => 'apihelp-flowthread-example-4',
 			'action=flowthread&postid=AValidPostID&type=delete' => 'apihelp-flowthread-example-5',
-		);
+		];
 	}
 }

@@ -32,13 +32,13 @@ class PopularPosts {
 		$cachedValue = $cache->get( $key );
 		if ( $cachedValue === false ) {
 			$posts = self::fetchFromDB( $pageid );
-			$valueToCache = array();
+			$valueToCache = [];
 			foreach ( $posts as $post ) {
 				$valueToCache[$post->id->getBin()] = $post->getFavorCount();
 			}
 			$cache->set( $key, $valueToCache, self::CACHE_TTL );
 		} else {
-			$posts = array();
+			$posts = [];
 			foreach ( $cachedValue as $id => $count ) {
 				$posts[] = Post::newFromId( UID::fromBin( $id ) );
 			}
@@ -50,20 +50,20 @@ class PopularPosts {
 	private static function fetchFromDB( $pageid ) {
 		global $wgFlowThreadConfig;
 		if ( !$wgFlowThreadConfig['PopularPostCount'] ) {
-			return array();
+			return [];
 		}
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
-		$cond = array(
+		$cond = [
 			'flowthread_pageid' => $pageid,
 			'flowthread_status' => Post::STATUS_NORMAL,
 			'flowthread_like >= ' . $wgFlowThreadConfig['PopularPostThreshold'],
-		);
-		$options = array(
+		];
+		$options = [
 			'ORDER BY' => 'flowthread_like DESC, flowthread_id DESC',
 			'LIMIT' => $wgFlowThreadConfig['PopularPostCount'],
-		);
+		];
 		$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), $cond, __METHOD__, $options );
-		$comments = array();
+		$comments = [];
 		foreach ( $res as $row ) {
 			$post = Post::newFromDatabaseRow( $row );
 			$comments[] = $post;

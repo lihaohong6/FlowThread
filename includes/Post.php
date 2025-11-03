@@ -54,7 +54,7 @@ class Post {
 	}
 
 	public static function getRequiredColumns() {
-		return array(
+		return [
 			'flowthread_id',
 			'flowthread_pageid',
 			'flowthread_userid',
@@ -64,7 +64,7 @@ class Post {
 			'flowthread_status',
 			'flowthread_like',
 			'flowthread_report',
-		);
+		];
 	}
 
 	public static function newFromDatabaseRow( stdClass $row ) {
@@ -76,7 +76,7 @@ class Post {
 			$parentid = UID::fromBin( $parentid );
 		}
 
-		$data = array(
+		$data = [
 			'id' => $id,
 			'pageid' => intval( $row->flowthread_pageid ),
 			'userid' => intval( $row->flowthread_userid ),
@@ -86,7 +86,7 @@ class Post {
 			'status' => intval( $row->flowthread_status ),
 			'like' => intval( $row->flowthread_like ),
 			'report' => intval( $row->flowthread_report ),
-		);
+		];
 
 		return new self( $data );
 	}
@@ -98,7 +98,7 @@ class Post {
 		$row = $dbr->selectRow(
 			'FlowThread',
 			self::getRequiredColumns(),
-			array( 'flowthread_id' => $id->getBin() )
+			[ 'flowthread_id' => $id->getBin() ]
 		);
 
 		if ( $row === false ) {
@@ -202,20 +202,20 @@ class Post {
 		$logEntry = new ManualLogEntry( 'comments', $subtype );
 		$logEntry->setPerformer( $initiator );
 		$logEntry->setTarget( Title::newFromId( $this->pageid ) );
-		$logEntry->setParameters( array(
+		$logEntry->setParameters( [
 			'4::username' => $this->username,
-		) );
+		] );
 		$logId = $logEntry->insert();
 		$logEntry->publish( $logId, 'udp' );
 	}
 
 	private function switchStatus( $newStatus ) {
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
-		$dbw->update( 'FlowThread', array(
+		$dbw->update( 'FlowThread', [
 			'flowthread_status' => $newStatus,
-		), array(
+		], [
 			'flowthread_id' => $this->id->getBin(),
-		) );
+		] );
 	}
 
 	public function recover( User $user ) {
@@ -259,10 +259,10 @@ class Post {
 		$this->updateFavorReportCount();
 
 		$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
-		$db->delete( 'FlowThreadAttitude', array(
+		$db->delete( 'FlowThreadAttitude', [
 			'flowthread_att_id' => $this->id->getBin(),
 			'flowthread_att_type' => self::ATTITUDE_REPORT,
-		) );
+		] );
 	}
 
 	public function delete( User $user ) {
@@ -303,13 +303,13 @@ class Post {
 	public function eraseSilently( DBConnRef $db ) {
 		$counter = 1;
 
-		$db->delete( 'FlowThread', array(
+		$db->delete( 'FlowThread', [
 			'flowthread_id' => $this->id->getBin(),
-		) );
+		] );
 		// We need to delete attitude as well to free up space
-		$db->delete( 'FlowThreadAttitude', array(
+		$db->delete( 'FlowThreadAttitude', [
 			'flowthread_att_id' => $this->id->getBin(),
-		) );
+		] );
 
 		$children = $this->getChildren();
 		foreach ( $children as $post ) {
@@ -334,10 +334,10 @@ class Post {
 		$logEntry = new ManualLogEntry( 'comments', 'erase' );
 		$logEntry->setPerformer( $user );
 		$logEntry->setTarget( Title::newFromId( $this->pageid ) );
-		$logEntry->setParameters( array(
+		$logEntry->setParameters( [
 			'4::postid' => $this->username,
 			'5::children' => $counter - 1,
-		) );
+		] );
 		$logId = $logEntry->insert();
 		$logEntry->publish( $logId, 'udp' );
 
@@ -349,7 +349,7 @@ class Post {
 		if ( !$this->id ) {
 			$this->id = UID::generate();
 		}
-		$dbw->insert( 'FlowThread', array(
+		$dbw->insert( 'FlowThread', [
 			'flowthread_id' => $this->id->getBin(),
 			'flowthread_pageid' => $this->pageid,
 			'flowthread_userid' => $this->userid,
@@ -359,7 +359,7 @@ class Post {
 			'flowthread_status' => $this->status,
 			'flowthread_like' => $this->favorCount,
 			'flowthread_report' => $this->reportCount,
-		) );
+		] );
 
 		global $wgTriggerFlowThreadHooks;
 		if ( $wgTriggerFlowThreadHooks ) {
@@ -436,14 +436,14 @@ class Post {
 		$res = $dbr->select(
 			'FlowThread',
 			self::getRequiredColumns(),
-			array(
+			[
 				'flowthread_pageid' => $this->pageid,
 				# This line is critical in performance, as we indexed pageid
 				'flowthread_parentid' => $this->id->getBin(),
-			)
+			]
 		);
 
-		$comments = array();
+		$comments = [];
 
 		foreach ( $res as $row ) {
 			$post = self::newFromDatabaseRow( $row );
@@ -463,10 +463,10 @@ class Post {
 
 	public function getUserAttitude( User $user ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
-		$row = $dbr->selectRow( 'FlowThreadAttitude', 'flowthread_att_type', array(
+		$row = $dbr->selectRow( 'FlowThreadAttitude', 'flowthread_att_type', [
 			'flowthread_att_id' => $this->id->getBin(),
 			'flowthread_att_userid' => $user->getId(),
-		) );
+		] );
 		if ( $row === false ) {
 			return static::ATTITUDE_NORMAL;
 		} else {
@@ -476,12 +476,12 @@ class Post {
 
 	private function updateFavorReportCount() {
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
-		$dbw->update( 'FlowThread', array(
+		$dbw->update( 'FlowThread', [
 			'flowthread_like' => $this->favorCount,
 			'flowthread_report' => $this->reportCount,
-		), array(
+		], [
 			'flowthread_id' => $this->id->getBin(),
-		) );
+		] );
 	}
 
 	public function setUserAttitude( User $user, $att ) {
@@ -499,24 +499,24 @@ class Post {
 
 		// Delete entry if the attitude is neutral
 		if ( $att === static::ATTITUDE_NORMAL ) {
-			$dbw->delete( 'FlowThreadAttitude', array(
+			$dbw->delete( 'FlowThreadAttitude', [
 				'flowthread_att_id' => $this->id->getBin(),
 				'flowthread_att_userid' => $user->getId(),
-			) );
+			] );
 		} else {
 			if ( $oldatt !== static::ATTITUDE_NORMAL ) {
-				$dbw->update( 'FlowThreadAttitude', array(
+				$dbw->update( 'FlowThreadAttitude', [
 					'flowthread_att_type' => $att,
-				), array(
+				], [
 					'flowthread_att_id' => $this->id->getBin(),
 					'flowthread_att_userid' => $user->getId(),
-				) );
+				] );
 			} else {
-				$dbw->insert( 'FlowThreadAttitude', array(
+				$dbw->insert( 'FlowThreadAttitude', [
 					'flowthread_att_id' => $this->id->getBin(),
 					'flowthread_att_type' => $att,
 					'flowthread_att_userid' => $user->getId(),
-				) );
+				] );
 			}
 		}
 

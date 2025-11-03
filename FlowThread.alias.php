@@ -1,18 +1,18 @@
 <?php
-$specialPageAliases = array();
+$specialPageAliases = [];
 
-$specialPageAliases['en'] = array(
-	'FlowThreadImport' => array( 'FlowThreadImport' ),
-	'FlowThreadExport' => array( 'FlowThreadExport' ),
-	'FlowThreadManage' => array( 'FlowThreadManage' ),
-	'FlowThreadLink' => array( 'FlowThreadLink' ),
+$specialPageAliases['en'] = [
+	'FlowThreadImport' => [ 'FlowThreadImport' ],
+	'FlowThreadExport' => [ 'FlowThreadExport' ],
+	'FlowThreadManage' => [ 'FlowThreadManage' ],
+	'FlowThreadLink' => [ 'FlowThreadLink' ],
 	'FlowThreadControl' => [ 'CommentControl' ],
-);
+];
 
-$specialPageAliases['zh-hans'] = array(
-	'FlowThreadImport' => array( '导入FlowThread评论' ),
-	'FlowThreadExport' => array( '导出FlowThread评论' ),
-	'FlowThreadManage' => array( '管理FlowThread评论' ),
-	'FlowThreadLink' => array( 'FlowThreadLink' ),
+$specialPageAliases['zh-hans'] = [
+	'FlowThreadImport' => [ '导入FlowThread评论' ],
+	'FlowThreadExport' => [ '导出FlowThread评论' ],
+	'FlowThreadManage' => [ '管理FlowThread评论' ],
+	'FlowThreadLink' => [ 'FlowThreadLink' ],
 	'FlowThreadControl' => [ '评论控制' ],
-);
+];

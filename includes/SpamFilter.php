@@ -55,17 +55,17 @@ class SpamFilter {
 			return null;
 		}
 
-		return array(
+		return [
 			'regex' => $regex,
 			'opt' => $opts,
-		);
+		];
 	}
 
 	/**
 	 * Parse option part in blacklist line (enclosed in <>)
 	 */
 	private static function parseOptions( $opts ) {
-		$options = array();
+		$options = [];
 		$segments = explode( '|', $opts );
 		foreach ( $segments as $opt ) {
 			// Extract key=value pair
@@ -85,7 +85,7 @@ class SpamFilter {
 						if ( isset( $options['right'] ) ) {
 							$options['right'][] = $key;
 						} else {
-							$options['right'] = array( $key );
+							$options['right'] = [ $key ];
 						}
 					} else {
 						if ( in_array( $key, $services->getUserGroupManager()->listAllGroups() ) ) {
@@ -93,7 +93,7 @@ class SpamFilter {
 							if ( isset( $options['group'] ) ) {
 								$options['group'][] = $key;
 							} else {
-								$options['group'] = array( $key );
+								$options['group'] = [ $key ];
 							}
 						}
 					}
@@ -107,7 +107,7 @@ class SpamFilter {
 	 * Parse whole spam blacklist
 	 */
 	private static function parseLines( $lines ) {
-		$batches = array();
+		$batches = [];
 		foreach ( $lines as $line ) {
 			$parsed = self::parseLine( $line );
 			if ( $parsed ) {
@@ -119,12 +119,12 @@ class SpamFilter {
 				}
 			}
 		}
-		$ret = array();
+		$ret = [];
 		foreach ( $batches as $opt => $regex ) {
-			$ret[] = array(
+			$ret[] = [
 				'/' . $regex . '/iu',
 				self::parseOptions( $opt ),
-			);
+			];
 		}
 
 		return $ret;
@@ -139,7 +139,7 @@ class SpamFilter {
 			function () {
 			$source = wfMessage( 'flowthread-blacklist' )->inContentLanguage();
 			if ( $source->isDisabled() ) {
-				return array();
+				return [];
 			}
 			$lines = explode( "\n", $source->text() );
 
@@ -151,9 +151,9 @@ class SpamFilter {
 	public static function validate( $text, $poster, $wikitext ) {
 		$blacklist = self::getBlackList();
 		$spammed = false;
-		$ret = array(
+		$ret = [
 			'good' => true,
-		);
+		];
 
 		foreach ( $blacklist as $line ) {
 			list( $regex, $opt ) = $line;

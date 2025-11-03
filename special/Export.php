@@ -57,11 +57,11 @@ class SpecialExport extends SpecialPage {
 
 			// We do a limited query, as otherwise buffering will consume too much memory and time
 			while ( $hasNext ) {
-				$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), array(), __METHOD__, array(
+				$res = $dbr->select( 'FlowThread', Post::getRequiredColumns(), [], __METHOD__, [
 					'ORDER BY' => 'flowthread_pageid ASC, flowthread_id ASC',
 					'OFFSET' => $offset,
 					'LIMIT' => 1000,
-				) );
+				] );
 				$offset += 1000;
 
 				$hasNext = false; // Nasty but neccessary stuff to make it fast
@@ -86,14 +86,14 @@ class SpecialExport extends SpecialPage {
 						echo ",\n";
 					}
 
-					$postJSON = array(
+					$postJSON = [
 						'id' => $post->id->getHex(),
 						'userid' => $post->userid,
 						'username' => $post->username,
 						'text' => $post->text,
 						'parentid' => $post->parentid ? $post->parentid->getHex() : null,
 						'status' => $post->status,
-					);
+					];
 					echo '  ' . FormatJSON::encode( $postJSON );
 				}
 			}
@@ -101,7 +101,7 @@ class SpecialExport extends SpecialPage {
 
 			return;
 		} else {
-			$formDescriptor = array();
+			$formDescriptor = [];
 
 			$htmlForm = HTMLForm::factory( 'div', $formDescriptor, $this->getContext(), 'flowthread_export_form' );
 

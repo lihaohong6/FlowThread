@@ -28,13 +28,13 @@ class Query {
 	public function fetch() {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
-		$comments = array();
-		$parentLookup = array();
+		$comments = [];
+		$parentLookup = [];
 
-		$options = array(
+		$options = [
 			'OFFSET' => $this->offset,
 			'ORDER BY' => 'flowthread_id ' . ( $this->dir === 'older' ? 'DESC' : 'ASC' ),
-		);
+		];
 		if ( $this->limit !== -1 ) {
 			$options['LIMIT'] = $this->limit;
 		}
@@ -101,10 +101,10 @@ class Query {
 			// Recursively get all children post list
 			// This is not really resource consuming as you might think, as we use IN to boost it up
 			while ( $sqlPart ) {
-				$cond = array(
+				$cond = [
 					'flowthread_pageid' => $this->pageid,
 					'flowthread_parentid IN(' . $sqlPart . ')',
-				);
+				];
 				switch ( $this->filter ) {
 					case static::FILTER_ALL:
 						break;
@@ -149,7 +149,7 @@ class Query {
 				$post->eraseSilently( $dbw );
 			}
 		}
-		$this->posts = array();
+		$this->posts = [];
 	}
 
 }

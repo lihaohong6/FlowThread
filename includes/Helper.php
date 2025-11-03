@@ -83,7 +83,7 @@ class Helper {
 
 	public static function batchGetUserAttitude( User $user, array $posts ) {
 		if ( !count( $posts ) ) {
-			return array();
+			return [];
 		}
 
 		$ret = [];
@@ -100,13 +100,13 @@ class Helper {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
 		$inExpr = self::buildPostInExpr( $dbr, $posts );
-		$res = $dbr->select( 'FlowThreadAttitude', array(
+		$res = $dbr->select( 'FlowThreadAttitude', [
 			'flowthread_att_id',
 			'flowthread_att_type',
-		), array(
+		], [
 			'flowthread_att_id' . $inExpr,
 			'flowthread_att_userid' => $user->getId(),
-		) );
+		] );
 
 		foreach ( $res as $row ) {
 			$ret[UID::fromBin( $row->flowthread_att_id )->getHex()] = intval( $row->flowthread_att_type );
@@ -122,7 +122,7 @@ class Helper {
 
 	public static function generateMentionedList( \ParserOutput $output, Post $post ) {
 		$pageTitle = Title::newFromId( $post->pageid );
-		$mentioned = array();
+		$mentioned = [];
 		$links = $output->getLinks();
 		if ( isset( $links[NS_USER] ) && is_array( $links[NS_USER] ) ) {
 			foreach ( $links[NS_USER] as $titleName => $pageId ) {
@@ -155,12 +155,12 @@ class Helper {
 	}
 
 	public static function getFilteredNamespace() {
-		$ret = array(
+		$ret = [
 			NS_MEDIAWIKI,
 			NS_TEMPLATE,
 			NS_CATEGORY,
 			NS_FILE,
-		);
+		];
 		if ( defined( 'NS_MODULE' ) ) {
 			$ret[] = NS_MODULE;
 		}

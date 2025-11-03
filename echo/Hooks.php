@@ -10,61 +10,61 @@ use MediaWiki\User\User;
 class EchoHooks {
 
 	public static function onBeforeCreateEchoEvent( &$notifications, &$notificationCategories, &$icons ) {
-		$icons += array(
-			'flowthread-delete' => array(
+		$icons += [
+			'flowthread-delete' => [
 				'path' => 'FlowThread/assets/delete.svg'
-			),
-		);
+			],
+		];
 
-		$notificationCategories['flowthread'] = array(
+		$notificationCategories['flowthread'] = [
 			'priority' => 4,
 			'tooltip' => 'echo-pref-tooltip-flowthread',
-		);
-		$notifications['flowthread_reply'] = array(
+		];
+		$notifications['flowthread_reply'] = [
 			'category' => 'flowthread',
 			'group' => 'interactive',
 			'section' => 'message',
 			'presentation-model' => 'FlowThread\\EchoPresentationModel',
-		);
-		$notifications['flowthread_userpage'] = array(
+		];
+		$notifications['flowthread_userpage'] = [
 			'category' => 'flowthread',
 			'group' => 'interactive',
 			'section' => 'message',
 			'presentation-model' => 'FlowThread\\EchoPresentationModel',
-		);
-		$notifications['flowthread_mention'] = array(
+		];
+		$notifications['flowthread_mention'] = [
 			'category' => 'flowthread',
 			'group' => 'interactive',
 			'section' => 'message',
 			'presentation-model' => 'FlowThread\\EchoPresentationModel',
-		);
-		$notifications['flowthread_delete'] = array(
-			'user-locators' => array(
+		];
+		$notifications['flowthread_delete'] = [
+			'user-locators' => [
 				'EchoUserLocator::locateEventAgent',
-			),
+			],
 			'category' => 'flowthread',
 			'group' => 'negative',
 			'section' => 'alert',
 			'presentation-model' => 'FlowThread\\EchoAlertPresentationModel',
-		);
-		$notifications['flowthread_recover'] = array(
-			'user-locators' => array(
+		];
+		$notifications['flowthread_recover'] = [
+			'user-locators' => [
 				'EchoUserLocator::locateEventAgent',
-			),
+			],
 			'category' => 'flowthread',
 			'group' => 'positive',
 			'section' => 'alert',
 			'presentation-model' => 'FlowThread\\EchoAlertPresentationModel',
-		);
-		$notifications['flowthread_spam'] = array(
-			'user-locators' => array(
+		];
+		$notifications['flowthread_spam'] = [
+			'user-locators' => [
 				'EchoUserLocator::locateEventAgent',
-			),
+			],
 			'category' => 'flowthread',
 			'group' => 'negative',
 			'section' => 'alert',
 			'presentation-model' => 'FlowThread\\EchoAlertPresentationModel',
-		);
+		];
 
 		return true;
 	}
@@ -93,7 +93,7 @@ class EchoHooks {
 		$poster = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $post->userid );
 		$title = Title::newFromId( $post->pageid );
 
-		$targets = array();
+		$targets = [];
 		$parent = $post->getParent();
 		for ( ; $parent; $parent = $parent->getParent() ) {
 			// If the parent post is anonymous, we generate no message
@@ -106,30 +106,30 @@ class EchoHooks {
 			}
 			$targets[] = $parent->userid;
 		}
-		Event::create( array(
+		Event::create( [
 			'type' => 'flowthread_reply',
 			'title' => $title,
-			'extra' => array(
+			'extra' => [
 				'target-user-id' => $targets,
 				'postid' => $post->id->getBin(),
-			),
+			],
 			'agent' => $poster,
-		) );
+		] );
 
 		// Check if posted on a user page
 		if ( $title->getNamespace() === NS_USER && !$title->isSubpage() ) {
 			$user = MediaWikiServices::getInstance()->getUserFactory()->newFromName( $title->getText() );
 			// If user exists and is not the poster
 			if ( $user && $user->getId() !== 0 && !$user->equals( $poster ) && !in_array( $user->getId(), $targets ) ) {
-				Event::create( array(
+				Event::create( [
 					'type' => 'flowthread_userpage',
 					'title' => $title,
-					'extra' => array(
-						'target-user-id' => array( $user->getId() ),
+					'extra' => [
+						'target-user-id' => [ $user->getId() ],
 						'postid' => $post->id->getBin(),
-					),
+					],
 					'agent' => $poster,
-				) );
+				] );
 			}
 		}
 
@@ -144,15 +144,15 @@ class EchoHooks {
 		$poster = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $post->userid );
 		$title = Title::newFromId( $post->pageid );
 
-		Event::create( array(
+		Event::create( [
 			'type' => 'flowthread_delete',
 			'title' => $title,
-			'extra' => array(
+			'extra' => [
 				'notifyAgent' => true,
 				'postid' => $post->id->getBin(),
-			),
+			],
 			'agent' => $poster,
-		) );
+		] );
 
 		return true;
 	}
@@ -165,15 +165,15 @@ class EchoHooks {
 		$poster = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $post->userid );
 		$title = Title::newFromId( $post->pageid );
 
-		Event::create( array(
+		Event::create( [
 			'type' => 'flowthread_recover',
 			'title' => $title,
-			'extra' => array(
+			'extra' => [
 				'notifyAgent' => true,
 				'postid' => $post->id->getBin(),
-			),
+			],
 			'agent' => $poster,
-		) );
+		] );
 
 		return true;
 	}
@@ -186,21 +186,21 @@ class EchoHooks {
 		$poster = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $post->userid );
 		$title = Title::newFromId( $post->pageid );
 
-		Event::create( array(
+		Event::create( [
 			'type' => 'flowthread_spam',
 			'title' => $title,
-			'extra' => array(
+			'extra' => [
 				'notifyAgent' => true,
 				'postid' => $post->id->getBin(),
-			),
+			],
 			'agent' => $poster,
-		) );
+		] );
 
 		return true;
 	}
 
 	public static function onFlowThreadMention( $post, $mentioned ) {
-		$targets = array();
+		$targets = [];
 		foreach ( $mentioned as $id => $id2 ) {
 			$targets[] = $id;
 		}
@@ -208,15 +208,15 @@ class EchoHooks {
 		$poster = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $post->userid );
 		$title = Title::newFromId( $post->pageid );
 
-		Event::create( array(
+		Event::create( [
 			'type' => 'flowthread_mention',
 			'title' => $title,
-			'extra' => array(
+			'extra' => [
 				'target-user-id' => $targets,
 				'postid' => $post->id->getBin(),
-			),
+			],
 			'agent' => $poster,
-		) );
+		] );
 
 		return true;
 	}

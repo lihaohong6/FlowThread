@@ -9,7 +9,7 @@ use MediaWiki\Title\Title;
 
 class SpecialLink extends RedirectSpecialPage {
 
-	private $query = array();
+	private $query = [];
 
 	public function __construct() {
 		parent::__construct( 'FlowThreadLink' );
@@ -25,16 +25,14 @@ class SpecialLink extends RedirectSpecialPage {
 
 				$db = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 
-				$cond = array(
+				$cond = [
 					'flowthread_pageid' => $post->pageid,
 					'flowthread_id > ' . $db->addQuotes( $post->id->getBin() ),
 					'flowthread_parentid IS NULL',
 					'flowthread_status' => Post::STATUS_NORMAL,
-				);
+				];
 
-				$row = $db->selectRow( 'FlowThread', array(
-					'count' => 'count(*)',
-				), $cond );
+				$row = $db->selectRow( 'FlowThread', [ 'count' => 'count(*)' ], $cond );
 
 				if ( $row ) {
 					$pageCount = intval( $row->count / 10 ) + 1;

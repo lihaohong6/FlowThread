@@ -86,7 +86,7 @@ class SpecialImport extends FormSpecialPage {
 			$titleId = $title->getArticleID();
 
 			foreach ( $articles->posts as $postJson ) {
-				$data = array(
+				$data = [
 					'id' => UID::fromHex( $postJson->id ),
 					'pageid' => $titleId,
 					'userid' => $postJson->userid,
@@ -96,7 +96,7 @@ class SpecialImport extends FormSpecialPage {
 					'status' => $postJson->status,
 					'like' => 0,
 					'report' => 0,
-				);
+				];
 				$postObject = new Post( $data );
 				try {
 					$postObject->post();
@@ -110,9 +110,9 @@ class SpecialImport extends FormSpecialPage {
 				$logEntry = new ManualLogEntry( 'comments', 'import' );
 				$logEntry->setPerformer( $this->getUser() );
 				$logEntry->setTarget( $title );
-				$logEntry->setParameters( array(
+				$logEntry->setParameters( [
 					'4::count' => $count,
-				) );
+				] );
 				$logId = $logEntry->insert();
 				$logEntry->publish( $logId, 'udp' );
 				$output->addWikiMsg( 'flowthreadimport-success', $articles->title, $count );
@@ -128,13 +128,13 @@ class SpecialImport extends FormSpecialPage {
 	}
 
 	protected function getFormFields() {
-		$formDescriptor = array(
-			'jsonimport' => array(
+		$formDescriptor = [
+			'jsonimport' => [
 				'class' => 'HTMLTextField',
 				'type' => 'file',
 				'label-message' => 'import-upload-filename',
-			),
-		);
+			],
+		];
 
 		return $formDescriptor;
 	}

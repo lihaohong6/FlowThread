@@ -75,18 +75,18 @@ class SpecialManage extends SpecialPage {
 				'commentadmin'
 			)
 		) {
-			$output->addJsConfigVars( array(
+			$output->addJsConfigVars( [
 				'commentadmin' => '',
-			) );
+			] );
 		}
 
 		global $wgFlowThreadConfig;
-		$output->addJsConfigVars( array(
-			'wgFlowThreadConfig' => array(
+		$output->addJsConfigVars( [
+			'wgFlowThreadConfig' => [
 				'Avatar' => $wgFlowThreadConfig['Avatar'],
 				'AnonymousAvatar' => $wgFlowThreadConfig['AnonymousAvatar'],
-			)
-		) );
+			]
+		] );
 	}
 
 	private function showForm() {
@@ -112,10 +112,10 @@ class SpecialManage extends SpecialPage {
 		// Wrap with a form
 		$html = Xml::tags(
 			'form',
-			array(
+			[
 				'action' => $wgScript,
 				'method' => 'get'
-			),
+			],
 			$html
 		);
 
@@ -129,23 +129,23 @@ class SpecialManage extends SpecialPage {
 				Title::newFromText( 'MediaWiki:Flowthread-blacklist' ),
 				$this->msg( 'flowthread-ui-editblacklist' )
 			);
-			$html .= Xml::tags( 'small', array( 'style' => 'float:right;' ), $link );
+			$html .= Xml::tags( 'small', [ 'style' => 'float:right;' ], $link );
 		}
 
 		$this->getOutput()->addHTML( $html );
 	}
 
 	private function getPossibleFilters() {
-		return array(
+		return [
 			'all',
 			'reported',
 			'spam',
 			'deleted'
-		);
+		];
 	}
 
 	private function getFilterLinks( $current ) {
-		$links = array();
+		$links = [];
 		$query = $this->getQuery();
 		foreach ( $this->getPossibleFilters() as $filter ) {
 			$msg = $this->msg( "flowthread-filter-{$filter}" )->escaped();
@@ -266,13 +266,13 @@ class SpecialManage extends SpecialPage {
 	}
 
 	private function getLimitLinks() {
-		$possibleLimits = array(
+		$possibleLimits = [
 			10,
 			20,
 			50,
 			100,
 			200
-		);
+		];
 		$query = $this->getQuery();
 		$str = '';
 		foreach ( $possibleLimits as $limit ) {
