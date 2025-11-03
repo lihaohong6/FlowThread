@@ -6,7 +6,7 @@ function getAvatar( id, username ) {
 	if ( id === 0 ) {
 		return config.AnonymousAvatar;
 	} else {
-		return config.Avatar.replace( /\$\{username\}/g, username ).replace( /\$\{userid\}/g, id );
+		return config.Avatar.replace( /\$\{username}/g, username ).replace( /\$\{userid}/g, id );
 	}
 }
 
@@ -24,7 +24,7 @@ function getTimeString( time ) {
 function Thread() {
 	const template = '<div class="comment-thread"><div class="comment-post">'
 		+ '<div class="comment-avatar">'
-		+ '<img src=""></img>'
+		+ '<img src="" />'
 		+ '</div>'
 		+ '<div class="comment-body">'
 		+ '<div class="comment-user"></div>'
@@ -208,7 +208,7 @@ function createReplyBox( thread ) {
 function ReplyBox( thread ) {
 	const template = '<div class="comment-replybox">'
 		+ '<div class="comment-avatar">'
-		+ '<img src="' + getAvatar( mw.user.getId(), mw.user.id() ) + '"></img>'
+		+ '<img src="' + getAvatar( mw.user.getId(), mw.user.id() ) + '" />'
 		+ '</div>'
 		+ '<div class="comment-body">'
 		+ '<textarea placeholder="' + mw.msg( 'flowthread-ui-placeholder' ) + '"></textarea>'

@@ -152,12 +152,20 @@ Paginator.prototype.repaint = function () {
 const pager = new Paginator();
 
 $( document ).ready( () => {
-	$( '#bodyContent' ).after( $( '<div class="post-content" id="flowthread"></div>' ).append( commentContainerTop, commentContainer, pager.object, function () {
+	const flowThreadRoot = $( '<div class="post-content" id="flowthread"></div>' );
+	if ( mw.config.get('skin') === 'vector-2022' ) {
+		// Special treatment for vector-2022 due to its layout quirk: for some page widths the comment section
+		// will appear above page content
+		$( '#bodyContent' ).append( flowThreadRoot );
+	} else {
+		$( '#bodyContent' ).after( flowThreadRoot );
+	}
+	flowThreadRoot.append( commentContainerTop, commentContainer, pager.object, function () {
 		if ( canpost ) return createReplyBox( null );
 		const noticeContainer = $( '<div>' ).addClass( 'comment-bannotice' );
 		noticeContainer.html( config.CantPostNotice );
 		return noticeContainer;
-	}() ) )
+	}() );
 } );
 
 if ( mw.util.getParamValue( 'flowthread-page' ) ) {

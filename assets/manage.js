@@ -245,7 +245,7 @@ $( window ).on( 'popstate', function () {
 	loadComments();
 } );
 
-$( '#bodyContent' ).after( '<div class="comment-container"></div>' );
+$( '#bodyContent' ).append( '<div class="comment-container"></div>' );
 loadComments();
 
 function wrapButtonMsg( msg ) {
